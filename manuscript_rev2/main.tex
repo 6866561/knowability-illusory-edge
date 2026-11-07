@@ -1,0 +1,340 @@
+\documentclass[journal]{IEEEtran}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amsthm}
+\usepackage{newtxtext,newtxmath}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{cite}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+
+\input{gen/macros.tex}
+\input{gen/macros_extra.tex}
+\input{gen/macros_ext.tex}
+\input{gen/macros_rev2.tex}
+\input{gen/macros_default.tex}
+
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\LSS}{\mathrm{LSS}}
+\newcommand{\KL}{\mathrm{KL}}
+\newcommand{\ind}{\mathbf{1}}
+\newcommand{\Hb}{H_{\mathrm b}}
+
+\begin{document}
+
+\title{Illusory Edge: Persistent Label Errors, Disagreement Audits, and the Limits of Measured Predictability}
+
+\author{Johan~Abraham%
+\thanks{J. Abraham is an independent researcher. Code, archived predictions, the preregistration and derived results are available for reproduction (Appendix~\ref{app:repro}).}}
+
+\markboth{Preprint, revision 2, November 2026}{Abraham: Illusory Edge}
+
+\maketitle
+
+\begin{abstract}
+A forecasting model's measured skill can exceed its true skill when the labels it is scored on contain errors that persist within entities. We give an exact identity for the effect of label errors on the measured accuracy difference between two fixed decision rules, show that entity-persistent errors can reverse the sign of an edge without being detected by time-ordered validation, and derive a disagreement audit: a finite-population bound on the true edge from hand-checking a random sample of the rows on which two rules disagree. In a reproduced earnings-guidance model, rows later removed as mislabelled carried an apparent edge of $\ecRemEdge$ points; on a fixed cohort of $\ecRows$ correctly labelled forecasts the edge was indistinguishable from zero before and after retraining, and an audit of 40 disagreement rows bounds the true edge below by $\auLBwHa$ points, so no positive edge can be certified. We separate the Bayes ceiling of a stated information set from algorithm-specific learnability and report achieved skill relative to point-in-time base rates in eleven tasks. In exploratory studies of two low-dimensional chaotic systems, the samples a nearest-neighbour learner needs to come within $0.05$ of an ensemble reference grow steeply with the horizon (close to exponentially for Lorenz-63), at rates that depend on the learner and the tolerance; for Lorenz-96 the rates are mostly not identifiable within $10^6$ samples. On IBM processors, next-calibration readout and two-qubit errors are partly forecastable and coherence times at most weakly. Simulated quantum classifiers showed no detectable advantage on classical data.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Bayes error, forecast verification, label noise, data auditing, nearest-neighbour classification, chaos, quantum hardware.
+\end{IEEEkeywords}
+
+\section{Introduction}
+\IEEEPARstart{A}{ccuracy} against a coin is a poor guide to whether an outcome is predictable; the relevant reference is the base rate, and the relevant question is how much of the outcome's uncertainty a stated information set can remove. A second, less familiar hazard concerns the labels themselves. When label errors are attached to particular entities and persist over time, a flexible model can learn them; because future labels share the same errors, time-ordered validation rewards the model for having done so. This paper analyses that mechanism, gives a practical audit for it, and documents it in a production forecasting model.
+
+The work began with a model that forecasts whether a firm's diluted GAAP earnings exceed the midpoint of management's original guidance~\cite{ciconte2014midpoint}. An early version showed an edge over the issuer base rate that disappeared when label-extraction errors were removed; the errors were concentrated in particular issuers (guidance for continuing operations scored against total earnings, quarter-mapping errors) and repeated over time.
+
+\subsection{Contributions and their status}
+We classify each item as established (E), synthesis (S), new proposition (N) or new empirical finding (F), following a prior-art audit (Section~\ref{sec:related}).
+\begin{enumerate}
+\item (N, central) An \emph{inflation identity} for the effect of label errors on the measured accuracy difference between fixed rules, a sign-reversal construction for entity-persistent errors, and the conditions under which time-ordered validation cannot detect them (Section~\ref{sec:illusory}). The phenomenon is a specialisation of instance-dependent label noise~\cite{frenay2014survey,xia2020part}; the identity and its validation-blindness conditions are, to our knowledge, not stated elsewhere.
+\item (N) A \emph{disagreement audit} with an exact finite-population (hypergeometric) guarantee and a weighted worst-case bound, extending the discordant-pair logic of McNemar's test and related to active label cleaning~\cite{bernhardt2022active} and active testing~\cite{kossen2021active}.
+\item (F) A fixed-cohort reanalysis of the earnings model that separates sample selection, training-label correction and evaluation-label correction, and an audit of its disagreement rows.
+\item (S) A framework separating the Bayes ceiling of an information set from algorithm-specific learnability; the knowable fraction is Theil's uncertainty coefficient~\cite{theil1970estimation}, and log-loss skill decompositions follow~\cite{weijs2010kl,roulston2002evaluating}.
+\item (F, exploratory) Achieved skill in eleven tasks with time-block uncertainty; learnability--horizon curves for two nearest-neighbour learners in five chaotic systems (rates identifiable in two); forecastability of IBM processor calibrations; a live CHSH experiment and a reanalysis of a loophole-free Bell test.
+\end{enumerate}
+The chaos and hardware studies are exploratory and could each support a separate paper; here they serve as controlled and physical illustrations of the framework.
+
+\section{Related Work}\label{sec:related}
+\emph{Label noise.} Learning with class- or instance-dependent noise is surveyed in~\cite{frenay2014survey,song2023learning}; part-dependent noise models errors that depend on input features~\cite{xia2020part}; noise-robust losses~\cite{natarajan2013learning} and confident learning~\cite{northcutt2021confident} address training under such noise. Errors in widely used test sets can change model rankings~\cite{northcutt2021pervasive}, models exploit dataset artefacts and shortcuts~\cite{geirhos2020shortcut}, and leakage undermines machine-learning-based science~\cite{kapoor2023leakage}. We study the evaluation consequence of errors that are constant within entities, and an audit restricted to disagreement rows. Prioritising labels for re-checking is studied as active label cleaning~\cite{bernhardt2022active}, and label-efficient estimation of test performance as active testing~\cite{kossen2021active}.
+
+\emph{Predictability and information.} The uncertainty coefficient~\cite{theil1970estimation} normalises mutual information by outcome entropy; information-theoretic forecast scores and their decompositions are developed in~\cite{roulston2002evaluating,weijs2010kl,gneiting2007strictly}. Limits of predictability have been studied in human mobility~\cite{song2010limits}, social systems~\cite{martin2016exploring,hofman2017prediction,salganik2020measuring} and weather~\cite{lorenz1969predictability,zhang2019predictability,bauer2015quiet}.
+
+\emph{Nearest neighbours and chaos.} 1-NN converges to error $\E[2r(1-r)]$~\cite{cover1967nearest}, and $k$-NN with $k\to\infty$, $k/n\to0$ is consistent~\cite{stone1977consistent}. Nearest-neighbour and local forecasting of chaotic systems is classical~\cite{farmer1987predicting,casdagli1989nonlinear}; data-driven forecasting with reservoir computers is reviewed in~\cite{pathak2018model}. Our chaos study measures sample requirements of named learners against an ensemble reference.
+
+\emph{Quantum.} The bound on accuracy from classical inputs is a corollary of data processing; the operational meaning of min-entropy~\cite{konig2009operational}, CHSH and Tsirelson's bound~\cite{clauser1969proposed,tsirelson1980quantum}, loophole-free Bell tests and their statistics~\cite{hensen2015loophole,hensen2016second,elkouss2016nearly}, and drift and relaxation-time fluctuations in superconducting qubits~\cite{klimov2018fluctuations,burnett2019decoherence,carroll2022dynamics,proctor2020detecting} provide the context.
+
+\section{Framework}\label{sec:framework}
+Formal definitions, assumptions and proofs are collected in Appendix~\ref{app:math}; we summarise them here.
+
+\emph{Information sets and ceilings.} A forecasting task specifies an evaluation distribution $P$ of a test example $(X,Y)$, where $X$ collects everything available at the decision time; we assume $0<P(Y=1)<1$. The Bayes ceiling of this information set is $A^*(\F)=\E\max\{\eta(X),1-\eta(X)\}$ with $\eta(x)=P(Y=1\mid X=x)$. We use ``Bayes ceiling relative to $\F$'' rather than ``physical ceiling'': it is a property of the stated information and distribution, not of nature. No decision rule using only $X$ exceeds it (Lemma~\ref{lem:app1}).
+
+\emph{Learnability.} For a named learning algorithm $\mathcal A$ trained on $n$ examples independent of the test example, $A_n(\mathcal A)=\E_{S_n}\Pr\{\mathcal A(S_n)(X)=Y\}$ and $G_n(\mathcal A)=A^*(\F)-A_n(\mathcal A)$. All finite-sample statements below concern specific algorithms; we make no claim about an optimal learner.
+
+\emph{Knowable fraction and achieved skill.} $\kappa(\F)=I(Y;X)/H(Y)$ is a population quantity. What we observe is the log-loss skill of a fitted forecast $\hat p$ relative to a point-in-time base-rate forecast $p_0$, $\LSS=1-\overline{\ell}(\hat p)/\overline{\ell}(p_0)$. In expectation,
+\begin{equation}\label{eq:lss}
+\LSS=1-\frac{H(Y\mid X)+\E\,\KL(\eta\Vert\hat p)}{H(Y\mid\F_0)+\E\,\KL(\eta_0\Vert p_0)},
+\end{equation}
+so achieved skill combines the information gap between $\F_0$ and $\F$ with the misspecification, estimation, calibration and drift losses of both forecasts. A small LSS is therefore not evidence of a small Bayes ceiling, and differences between nested fitted models are achieved score improvements, not conditional mutual informations; they can be negative.
+
+\emph{Closed forms used as references.} For a qubit $R_y(\theta)\lvert0\rangle$ with $\theta\sim U(0,\pi)$ known, $A^*=\tfrac12+\tfrac1\pi$ and $\kappa=1/\ln2-1$; with readout errors $e_0,e_1$ the Bayes ceiling is given in Proposition~\ref{prop:appqubit} and equals $\tfrac12+(1-e_0-e_1)/\pi$ only when $e_0=e_1$. For exchangeable entities with Beta-distributed rates, the oracle and finite-history Bayes accuracies are given in Proposition~\ref{prop:appbeta}; on real data, where hyperparameters are estimated, these are model-based approximations.
+
+\emph{Nearest-neighbour diagnostics.} Because 1-NN converges to $\E[2r(1-r)]$ with $r=\min(\eta,1-\eta)$, its asymptotic excess error is $\E[r(1-2r)]$, which is positive whenever labels remain uncertain given $X$. Inverting the Cover--Hart inequality with a finite-sample error estimate, or combining it with the Hellman--Raviv bound, yields only asymptotic plug-in diagnostics; we report them as such and never as certified bounds.
+
+\section{Illusory Edge and Disagreement Audits}\label{sec:illusory}
+Let $\tilde Y$ be the recorded label, $q(x)=P(Y=1\mid X=x)$ and $\tilde q(x)=P(\tilde Y=1\mid X=x)$. Statements concern fixed decision rules $f,g$ unless stated.
+
+\begin{proposition}[Inflation identity]\label{prop:identity}
+For fixed rules, the measured edge $\tilde\Delta$ and the true edge $\Delta$ satisfy $\tilde\Delta-\Delta=2\,\E[(f(X)-g(X))(\tilde q(X)-q(X))]$.
+\end{proposition}
+Measured edge is inflated exactly when $f$ departs from $g$ in the direction of the label distortion. Two consequences follow (proofs in Appendix~\ref{app:math}).
+
+\begin{proposition}[Symmetric independent noise]\label{prop:ind}
+If labels flip with probability $\rho<\tfrac12$ independently of $(X,Y)$, then $\tilde\Delta=(1-2\rho)\Delta$ for fixed rules, and the Bayes rule for the recorded labels coincides with the clean Bayes rule.
+\end{proposition}
+
+\begin{proposition}[Sign reversal]\label{prop:persist}
+If $q\equiv m>\tfrac12$, a share $\omega$ of entities (by outcomes) has $\tilde q=0$ with $(1-\omega)m>\tfrac12$, $g\equiv1$, and $f$ is the entity-wise Bayes rule for the recorded labels, then $\tilde\Delta=\omega>0$ while $\Delta=-\omega(2m-1)<0$.
+\end{proposition}
+
+\begin{proposition}[Time-ordered validation]\label{prop:wf}
+If within each entity the outcomes and corruption are i.i.d.\ over time with $\tilde q_i\neq\tfrac12$, each evaluated entity has an unbounded history, and the entity rule is the majority of past recorded labels, then walk-forward decisions converge almost surely to $\ind\{\tilde q_i>\tfrac12\}$ and the walk-forward measured edge converges to the in-sample measured edge. With a pooled base-rate fallback for held-out entities, the leave-entity-out entity-specific edge is zero.
+\end{proposition}
+The leave-entity-out check therefore flags entity-specific edge but cannot distinguish genuine persistence from persistent noise.
+
+\begin{proposition}[Disagreement audit]\label{prop:audit}
+On a fixed evaluation population with weights $w_j$ and disagreement set $D$ ($N_D$ rows), only wrong labels in $D$ affect the measured edge, and $|\tilde\Delta-\Delta|\le2\sum_{j\in D_{\rm wrong}}w_j/\sum_j w_j$. If $n$ rows sampled uniformly without replacement from $D$ contain $e$ errors and $K_U$ is the exact one-sided $(1-\alpha)$ hypergeometric upper bound on $|D_{\rm wrong}|$, then with probability at least $1-\alpha$, $\Delta\ge\tilde\Delta-2W_{(K_U)}/\sum_jw_j$, where $W_{(K)}$ is the sum of the $K$ largest weights in $D$.
+\end{proposition}
+The bound concerns the measured edge on the fixed population as labelled, not future predictive edge. The binomial Clopper--Pearson bound~\cite{clopper1934use} is valid for sampling with replacement and conservative here.
+
+\section{Experimental Design}\label{sec:design}
+\emph{Tasks.} The real-data tasks are measurable rain at 61 stations (with a numerical-weather-prediction, NWP, benchmark over 17 months), football home wins (with closing odds), contested U.S.\ House seats and presidential state outcomes, earnings guidance, next-day stock direction for current large U.S.\ stocks and funds, weekly earthquake occurrence in $2^\circ$ cells, and IBM processor calibrations. Controls are a qubit with known ceiling and five chaotic systems. A feature-and-timestamp specification for every task, with the leakage audit, is part of the reproducibility package; no demonstrated leakage was found, and the unresolved risks (revised catalogues and observations, survivorship in the stock universe, guidance revisions, polling delays) are listed in Section~\ref{sec:threats}.
+
+\emph{Protocol.} Every real-data task is evaluated walk-forward and point in time: a row is scored only by models fitted on labels available before its decision time, and all preprocessing (winsorisation, standardisation, priors, PCA) is fitted on training data only. Models are the point-in-time base rate, an empirical-Bayes entity model~\cite{robbins1956empirical,efron1975data}, $L_2$ logistic regression, gradient boosting and nested variants that include the base-rate forecast as an input.
+
+\emph{Inference.} Intervals use entity-clustered bootstraps and, where shocks are shared across entities, time-block bootstraps (calendar month, election year or quarter). Quantum--classical comparisons select each family's best model on a held-out validation split and test once; we report entity-clustered and month-block bootstrap intervals for the log-loss difference and a one-sided Diebold--Mariano test~\cite{diebold1995comparing} on the row-level loss differential ordered by decision time (Newey--West variance, lag $\lfloor T^{1/3}\rfloor$), and with one-sided bootstrap $p$-values over entities and over calendar months; Holm's correction~\cite{holm1979simple} across the eight domains is applied to the larger of the two bootstrap $p$-values. Panel dependence makes the Diebold--Mariano test approximate; the bootstraps are primary.
+
+\emph{Preregistration.} A document fixing hypotheses H1--H6, primary models and predicted skill ranges was hashed (SHA-256 prefix \texttt{abee64cc}) and committed to a local repository before data for the new real-data tasks were downloaded. The hash identifies the content; the local commit time is not independently verifiable and the hash was not deposited with a third-party registry, so the timing claim rests on our records. Preregistered analyses are preserved; deviations (1-NN diagnostic inputs, dropping tennis, nested models, refitting the Lorenz-63 scaling with 1-NN) and all analyses added in revision (multi-system chaos, hardware, Bell data, fixed-cohort earnings, time-block intervals, validation-based model selection) are exploratory. The earnings design predates the preregistration.
+
+\section{Results}\label{sec:results}
+\subsection{Illusory edge in simulation and in a production model}
+In 9{,}360 simulated panels, symmetric noise left measured and true edges nearly equal (means $\simIndMeas$ and $\simIndTrue$); under persistent corruption satisfying the hypotheses of Proposition~\ref{prop:persist}, the simulation reproduced the predicted reversal at finite history (for $m=0.75$, $\omega=0.2$: measured $\simExMeas$, true $\simExTrue$; theory $+0.200$ and $-0.100$). These are numerical checks of the propositions, not independent evidence.
+
+The production model reproduced byte for byte from its archived code and data; this establishes consistency with the archive, not correctness. We separate three mechanisms on the 98 new tickers (Table~\ref{tab:earn}). \emph{Sample selection:} the $\ecRem$ scored rows that the cleaning rules removed carried an empirical-Bayes edge over the base rate of $\ecRemEdge$ points when the archived predictions are scored against their original labels; these rows were excluded, not relabelled, and corrected labels for them (for example, total-company guidance where only continuing-operations guidance was published) are not available. \emph{Training-label correction:} on the fixed cohort of $\ecRows$ forecasts that were correctly labelled and scored in both runs, the edge was $\ecA$ points ($\ecAlo$ to $\ecAhi$) with the original training history and $\ecB$ ($\ecBlo$ to $\ecBhi$) after retraining on the cleaned history, so correcting the training labels changed little on this cohort. \emph{Aggregate:} the pooled edge fell from $\eBeforeEdge$ to $\eAfterEdge$ points, with the later-removed rows contributing $\eEdgeRemoved$ ($\eRemLo$ to $\eRemHi$). The removed rows' recorded outcomes beat the midpoint in $\eSigCont\%$ (continuing-operations rows) and $\eSigQuart\%$ (quarter-mapping errors) of cases, against $\eSigKept\%$ for correct rows, consistent with persistent, learnable misses.
+
+\emph{Audit.} We drew 40 of the $\auND$ harvested disagreement rows of the cleaned combined universe uniformly without replacement (fixed seed) and checked each against the press release; 39 were verifiable and $\eAuditE$ were wrong (continuing-operations guidance missed by the cleaning rule). The exact hypergeometric bound gives at most $\auKUa$ wrong rows in $D$ (rate $\auRhoHa$, against $\auRhoCPa$ from Clopper--Pearson); the weighted worst case places the true edge above $\auLBwHa$ points (measured $\auDelta$). Counting the unverifiable row as wrong gives $\auKUb$ and $\auLBwHb$ points. No positive edge can be certified. The audit also revealed a second persistent error class, revised rather than original guidance ranges, which the cleaning rules do not address. Detecting a one-point edge at the observed disagreement rate ($\auPDw$) with $80\%$ power at two-sided $\alpha=0.05$ requires about $\pwN$ independent forecasts (McNemar approximation); clustering by issuer raises this by the design effect (about $\pwNde$ for a design effect of two), against 972 available.
+
+\begin{table}[!t]
+\caption{Earnings Guidance: Mechanisms Behind the Apparent Edge}
+\label{tab:earn}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}p{0.56\columnwidth}l@{}}
+\toprule
+Quantity (EB edge over base rate, points) & Value [95\% CI]\\
+\midrule
+Removed rows ($n=\ecRem$), archived predictions, original labels & $\ecRemEdge$\\
+Fixed cohort ($n=\ecRows$), original training history & $\ecA$ [$\ecAlo$, $\ecAhi$]\\
+Fixed cohort, retrained on cleaned history & $\ecB$ [$\ecBlo$, $\ecBhi$]\\
+All new-ticker rows before cleaning & $\eBeforeEdge$\\
+\quad contribution of later-removed rows & $\eEdgeRemoved$ [$\eRemLo$, $\eRemHi$]\\
+All new-ticker rows after cleaning & $\eAfterEdge$\\
+Audit: errors / verified rows (1 unverifiable) & $\eAuditE$ / $\eAuditK$\\
+Audit lower bound, hypergeometric, weighted (in parentheses: unverifiable row counted as wrong) & $\auLBwHa$ ($\auLBwHb$)\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{figs/fig_illusory.pdf}
+\caption{Illusory edge. (a)~Measured (orange) and true (blue) edge of an entity rule over the base rate under persistent corruption: surfaces from Proposition~\ref{prop:persist}, points from simulation. (b)~Measured against true edge in 9{,}360 simulated panels. (c)~Earnings, new tickers: decomposition of the measured edge before cleaning, the edge after cleaning, and the audit lower bound (Clopper--Pearson version; the hypergeometric weighted bound is given in Table~\ref{tab:earn}).}
+\label{fig:illusory}
+\end{figure*}
+
+\subsection{Achieved skill across tasks}
+Table~\ref{tab:atlas} and Fig.~\ref{fig:atlas} report achieved log-loss skill relative to point-in-time base rates, for the primary nested model, with entity-clustered and time-block intervals. These are properties of specified tasks, information sets and fitted systems, not of domains in general. Skill ranges from $\nwpNestBLSS$ for rain with NWP to an amount for next-day stock direction that is not distinguishable from zero under time-block resampling ($\stTBlo$ to $\stTBhi$); presidential-state skill is imprecise ($\prTBlo$ to $\prTBhi$ across $\prTBn$ elections). Some nested increments are negative (entity history for rain, House seats and stocks), which the original analysis clipped to zero; they are reported here. High accuracy is not high skill: House seats are called correctly about 90\% of the time, but no model exceeds ``the incumbent party holds'' in accuracy ($\hsNestAcc$ against $\hsAccZero$). External benchmarks carry most of the achieved skill where they exist: NWP alone achieves $\nwpBenchLSS$, about $\nwpRatio$ times the best observation-only model on the same rows, and closing odds ($\fbBenchLSS$) exceed every football model we fitted. Unexplained log loss in these tables reflects the models as well as the information; we do not call it unknowable.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{figs/fig_atlas_rev.pdf}
+\caption{Achieved log-loss skill relative to point-in-time base rates (primary nested model; stacked by achieved score improvement from entity history, features and external benchmarks; negative increments drawn to the left). Grey diamonds are reference values of controls (exact or simulated), not fitted skill.}
+\label{fig:atlas}
+\end{figure}
+
+\begin{table*}[!t]
+\caption{Achieved Skill Relative to Point-in-Time Base Rates}
+\label{tab:atlas}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3.4pt}
+\begin{tabular}{@{}lrccccccccc@{}}
+\toprule
+Task & $n$ & $A_0$ & $A$ & $S_{acc}$ & LSS [entity CI] & entity & features & bench. & $\kappa_U$ diag. & $\tau$\\
+\midrule
+\csname @@input\endcsname gen/tab_atlas.tex
+\bottomrule
+\end{tabular}
+\vspace{2pt}
+
+\parbox{\textwidth}{\footnotesize $A_0$: base-rate accuracy. LSS: achieved skill of the primary nested model; entity, features, bench.: achieved score improvements of nested models as shares of the baseline loss (signed; not mutual informations). $\kappa_U$ diag.: Hellman--Raviv plug-in diagnostic from a finite-sample 1-NN error (no coverage guarantee). Time-block intervals for LSS are given in the text. Controls report exact or ensemble reference values.}
+\end{table*}
+
+\subsection{Controls and diagnostics}
+On the qubit control a gradient-boosting learner reached $\qEoneHundredK$ (standard error $\qSE$) at $n=10^5$ against the exact $\tfrac12+\tfrac1\pi=\qAexact$. In the Lorenz-63 control at long horizons the asymptotic Cover--Hart plug-in fell below the ensemble reference in $\chFailN$ of 44 settings ($\chFailHgeOne$ at $h\ge1$), so the plug-in should not be read as an upper bound at these sample sizes (Table~\ref{tab:controls}). The ensemble reference is itself an estimate: its sampled accuracy is not a deterministic bound on the population Bayes accuracy.
+
+\begin{table}[!t]
+\caption{Controls: Reference Values and Plug-in Diagnostics}
+\label{tab:controls}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.2pt}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Setting & $A^*$ ref. & $A_{\rm learn}$ & CH diag. & $\kappa$ ref. & LSS & $\kappa_U$ diag.\\
+\midrule
+\csname @@input\endcsname gen/tab_controls.tex
+\bottomrule
+\end{tabular}
+\vspace{2pt}
+
+\parbox{\columnwidth}{\scriptsize Reference: exact (qubit) or 400-particle ensemble estimate (Lorenz). CH and $\kappa_U$: asymptotic plug-in diagnostics from finite-sample 1-NN errors, not bounds.}
+\end{table}
+
+\subsection{Exploratory: learnability--horizon curves in chaotic systems}\label{sec:chaos}
+\emph{Generative model.} For each system the latent state $S$ is drawn from the invariant measure (independent trajectories integrated with fourth-order Runge--Kutta past a burn-in, with random extra integration to decorrelate), the observation is $Z=S+\varepsilon$ with $\varepsilon\sim N(0,\mathrm{diag}(\sigma^2))$ and $\sigma=10^{-4}$ times each coordinate's standard deviation, and the target is $\ind\{x_1(t+h)>\mathrm{median}\}$ at horizons $L=\lambda h\in\{0.5,\ldots,3\}$ Lyapunov times. Training and test states are independent draws. The reference forecast $\hat\eta(z)$ is the fraction of 500 particles, drawn from $N(z,\mathrm{diag}(\sigma^2))$ and integrated to the horizon, that satisfy the target: a local flat-prior approximation to $p(s\mid z)\propto p(z\mid s)\mu(ds)$, centred on the observation and not on the true state. For Lorenz-63 at horizons $L\in\{0.5,1,2\}$ and larger noise ($\sigma\in\{0.2,0.5\}$), where an importance-sampled posterior over $2\times10^7$ invariant-measure samples is feasible, the two agree in at least $\pvAgreeMin$ of decisions and their ensemble accuracies differ by at most $\pvAdiffMax$; at the study's noise level, 500 against 2{,}000 particles changes accuracy on 1{,}000 test states by at most $\pvPartAdiff$ and halving the step size leaves at least $\pvDtAgree$ of decisions unchanged (Appendix~\ref{app:repro}). The validation covers neither the tiny-noise regime directly nor the other systems or $L=3$; there the local approximation is assumed.
+
+\emph{Floors.} The estimated 1-NN floor $\E[r(1-2r)]$ is at most $\floorMaxAll$ across all systems, seeds and horizons, far below the $0.05$ tolerance, so the 1-NN crossings below are attainable in principle; the inconsistency of 1-NN nonetheless matters for any claim about learnability in general.
+
+\emph{Results.} For each system we drew three independent datasets and measured, for $n$ from $10^3$ to $10^6$, the accuracy gap between the ensemble rule and two learners: 1-NN and $k$-NN with $k=\lceil\sqrt n\rceil$ (Fig.~\ref{fig:law3}, Table~\ref{tab:law3}). Crossings of the gap $0.05$ are classified as interpolated between measured sample sizes, extrapolated from a learning-curve fit with a floor, unattainable, or not identifiable. Crossings already reached at the smallest $n$ (short horizons) are excluded from the slope fits. For Lorenz-63, $\ln n^*$ is close to linear in $L$ (mean $R^2$ of the exponential fit $\LorRexponenn$ for 1-NN and $\LorRexpknn$ for $k$-NN, against $\LorRpowonenn$ and $\LorRpowknn$ for a power law in $L$). For R\"ossler the two forms fit equally well (exponential $\RosRexponenn$ and $\RosRexpknn$, power law $\RosRpowonenn$ and $\RosRpowknn$), so the functional form is not identified there. The rate depends strongly on the learner: for Lorenz-63, $\gamma_L=\LorGonenn\pm\LorGsdonenn$ for 1-NN and $\LorGknn\pm\LorGsdknn$ for $k$-NN (mean $\pm$ s.d.\ over seeds), against $D_2\in[\LorDtwolo,\LorDtwohi]$; for R\"ossler, $\RosGonenn\pm\RosGsdonenn$ and $\RosGknn\pm\RosGsdknn$ against $D_2\in[\RosDtwolo,\RosDtwohi]$. The rates also depend on the tolerance: for Lorenz-63 with 1-NN, $\gamma_L=\LorGonennTwo$ at tolerance $0.02$ and $\LorGonennTen$ at $0.10$. The earlier observation that 1-NN rates are close to $D_2$ in three-variable flows is therefore specific to that learner and tolerance and does not describe learnability in general. For Lorenz-96 with five and six variables, fewer than three crossings per seed are interpolated within $10^6$ samples at tolerance $0.05$, so their rates are not identified under this protocol; at tolerance $0.10$, 1-NN on Lorenz-96 with five variables gives $\gamma_L=\LfiveGonennTen$ against $D_2\in[\LfiveDtwolo,\LfiveDtwohi]$ (exploratory). The rates reported for Lorenz-96 in the previous version rested on a single seed, larger samples and partial extrapolation and are withdrawn. Lorenz-96 with eight variables is excluded from any headline statement. Uncertainty in $\lambda$ (64 trajectories) is below $1\%$; $D_2$ varies by the range shown across scaling windows and samples.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{figs/fig_law3.pdf}
+\caption{Learnability--horizon curves (exploratory). (a)~Lorenz-63: accuracy gap to the ensemble rule for 1-NN (blue) and $k$-NN (orange) at $L=1$ and $3$, three seeds each; dotted: estimated 1-NN floors. (b)~Sample size at which the gap reaches $0.05$, by system and learner; marker shape gives the crossing status (circle interpolated, triangle extrapolated from a floor fit and capped at $10^{6.9}$); dotted line: largest $n$ measured; the row marked ``none'' collects cells with no crossing (open square: not identifiable), offset by system. (c)~Per-seed growth rates from interpolated crossings against the range of correlation-dimension estimates; dashed: $\gamma_L=D_2$.}
+\label{fig:law3}
+\end{figure*}
+
+\begin{table*}[!t]
+\caption{Learnability--Horizon Rates for Two Learners (Gap $0.05$; Three Seeds)}
+\label{tab:law3}
+\centering
+\footnotesize
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+System & $\lambda$ & $D_2$ range & max 1-NN floor & $\gamma_L$, 1-NN & $\gamma_L$, $k$-NN & crossings 1-NN & crossings $k$-NN\\
+\midrule
+\csname @@input\endcsname gen/tab_law3.tex
+\bottomrule
+\end{tabular}
+\vspace{2pt}
+
+\parbox{\textwidth}{\footnotesize $\gamma_L$: mean $\pm$ s.d.\ over seeds of the slope of $\ln n^*$ on $L$ using interpolated crossings only (number of seeds with $\ge3$ interpolated crossings in parentheses). Crossings: counts over 3 seeds $\times$ 6 horizons as interpolated/extrapolated/unattainable/not identifiable; the remainder of the 18 cells were already within tolerance at $n=10^3$. $^\ddagger$Exploratory only; excluded from headline statements.}
+\end{table*}
+
+\subsection{Exploratory: quantum models and quantum hardware}\label{sec:quantum}
+\emph{Classical inputs.} Conditionally on the training data, any quantum model applied to a classical input is a randomized function of that input, so it cannot exceed the input's Bayes ceiling (Proposition~\ref{prop:appqc}); it may approach that ceiling with less computation or, for structured problems, fewer samples~\cite{liu2021rigorous,huang2021information}. With model families selected on validation data, no quantum classifier was significantly better than the selected classical model in any of $\qrevN$ domains (smallest Holm-adjusted $p=\qrevMinHolm$; Table~\ref{tab:quantum}), and the classical model was better under both dependence structures in $\qrevNsigWorse$. The one case that depends on the dependence model is stocks: there the variational circuit (skill $\qrevStLq$) beat the selected classical model (skill $\qrevStLc$) by $\qrevStDll$ nats under an entity bootstrap ($p=\qrevStPe$), but not under a month-block bootstrap ($p=\qrevStPt$, interval $[\qrevStCilo,\qrevStCihi]$). Returns share market-wide shocks, so we treat the month-block result as the relevant one; both skills are close to zero. This is a failure to detect an advantage in small simulated circuits on six principal components, not an equivalence result.
+
+\begin{table*}[!t]
+\caption{Quantum and Classical Models Selected on Validation Data (Test LSS)}
+\label{tab:quantum}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lrcccccccc@{}}
+\toprule
+Domain & $n_{\rm test}$ & selected classical & selected quantum & $\Delta$LL (Q$-$C) & 95\% CI, entity & 95\% CI, time & DM $p$ & boot.\ $p$ (entity / time) & Holm $p$\\
+\midrule
+\csname @@input\endcsname gen/tab_quantum_rev.tex
+\bottomrule
+\end{tabular}
+\vspace{2pt}
+
+\parbox{\textwidth}{\footnotesize Selection by validation log loss within each family on identical six-dimensional inputs; the variational circuits also use the validation split for early stopping. $\Delta$LL $>0$: quantum worse. Entity: bootstrap over entities; time: bootstrap over calendar months (20 contiguous blocks for the synthetic tasks, 6 election years for the House). DM $p$: one-sided Diebold--Mariano (quantum better), approximate under panel dependence. Boot.\ $p$: one-sided, share of bootstrap differences $\ge0$. Holm $p$: Holm adjustment over the eight domains of the larger of the two bootstrap $p$-values.}
+\end{table*}
+
+\emph{Side information.} In the CHSH game two players receive independent uniform bits $a,b$, output $x,y$ without communicating, and win if $x\oplus y=a\wedge b$; $S=8\omega-4$ for win probability $\omega$, the best noncommunicating classical strategy wins with probability $0.75$, and a shared maximally entangled pair allows $\cos^2(\pi/8)$~\cite{clauser1969proposed,tsirelson1980quantum}. The bound $0.75$ is specific to this game, not a universal classical guessing limit. In the simulated side-information experiment, the ``classical'' forecaster holds the computational-basis outcome of the partner qubit, recorded before the measurement basis is chosen; it reaches $\sideCls$ in that protocol. A forecaster holding the partner qubit itself, and told the basis afterwards, predicts the chosen measurement perfectly ($\sideQ$); this does not reveal simultaneous outcomes of incompatible measurements~\cite{berta2010uncertainty,konig2009operational}.
+
+\emph{Live device.} On 7~November~2026 we ran 36 circuits with 4{,}000 shots on IBM's ibm\_kingston: an $R_y(\theta)$ sweep on qubits $\liveQA$ and $\liveQB$ (lowest reported readout errors) and the CHSH game on the coupled pair 61--62 (Fig.~\ref{fig:hardware}). The fitted readout errors were $e_0=\roAez$, $e_1=\roAeo$ and $e_0=\roBez$, $e_1=\roBeo$; the Bayes ceilings with the optimal threshold are $\roA$ ($\roAlo$--$\roAhi$, shot bootstrap) and $\roB$ ($\roBlo$--$\roBhi$), against the ideal $\qAexact$. The CHSH win probability was $\liveChsh$ (standard error $\liveChshSE$). Both qubits sit on one chip, settings were fixed in the circuit, and crosstalk and communication are not excluded, so this is a demonstration of the game, not a Bell test; the device and qubits were selected by reported calibration, and the run covers one day.
+
+\emph{Loophole-free Bell data.} Reanalysing the second Delft experiment with its released selection code, we reproduce $\bellN$ trials and $S=\bellS\pm\bellSerr$~\cite{hensen2016second}. With the winning condition adapted to the heralded Bell state, as in the original analysis, $\omega=\bellW$ ($\bellWlo$--$\bellWhi$); applying $x\oplus y=a\wedge b$ without the state gives $\bellWlit$, which does not exceed $0.75$. A one-sided binomial test against $0.75$ gives $p=\bellP$; the published complete analysis~\cite{hensen2016second,elkouss2016nearly}, which allows memory between trials and partially predictable settings, also reports $0.061$, but the procedures differ and the agreement of the numbers does not make them equivalent. The authors' conventional analysis gives $p=\bellPconv$. Bob's outcome is predicted from his own setting with accuracy $\bellOwn$ and, adding Alice's setting and outcome, $\bellSide$ ($\bellSidelo$--$\bellSidehi$; leave-one-out, identical to in-sample here).
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{figs/fig_hardware.pdf}
+\caption{Quantum hardware (exploratory). (a)~Live ibm\_kingston: measured $P(\text{read }1)$ after $R_y(\theta)$ for two qubits, 4{,}000 shots per point, with the ideal response. (b)~CHSH win probability in simulation, on eight IBM device noise models, on ibm\_kingston (a single-chip game, not a Bell test) and in the Delft loophole-free Bell test (heralded-state winning condition). (c)~Accuracy of predicting an outcome with and without side information.}
+\label{fig:hardware}
+\end{figure*}
+
+\emph{Calibration drift.} Each IBM processor is recalibrated roughly daily. Using $\drObs$ distinct calibration records (repeated 30-minute polls of the same calibration were deduplicated on the calibration timestamp) of $\drQubits$ qubits on three processors over $\drDays$ days~\cite{norton2026drift}, we forecast each qubit's next calibration on a log scale with walk-forward refits every 14 days, scoring the mean-squared-error skill against the qubit's expanding mean. Readout and two-qubit gate errors are partly forecastable one calibration ahead (skill $\drRoOne$ and $\drCzOne$), decaying to $\drRoFt$ and $\drCzFt$ two weeks ahead; $T_1$ and $T_2$ are at most weakly forecastable ($\drToneOne$ [$\drToneOnelo$, $\drToneOnehi$] and $\drTtwoOne$ [$\drTtwoOnelo$, $\drTtwoOnehi$]; replication $\drToneSecOne$ and $\drTtwoSecOne$), consistent with defect-driven fluctuations~\cite{klimov2018fluctuations,carroll2022dynamics}. Whether a qubit will be out of tolerance at its next calibration (readout error above the device's past 90th percentile or $T_1$ below its past 10th percentile; base rate $\dbPBase$) is forecast with LSS $\dbPHgbLSS$ ($\dbPHgbLSSlo$--$\dbPHgbLSShi$). Intervals resample qubits and so describe generalisation across qubits of these three processors over this period, not to other processors or times; a dataset collected independently over $\drSecDays$ days (replication of acquisition, not an independent experiment) gives the same pattern. The primary source changed the unit of $T_1$ and $T_2$ in May 2026; a failure filter excluded the earlier records, so those series are sparse before May.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{figs/fig_drift.pdf}
+\caption{Forecasting IBM processor calibrations (exploratory). (a)~Mean-squared-error skill against each qubit's climatology by horizon (bands: 95\% qubit-clustered intervals; dashed: replication dataset; dotted: persistence for readout error). (b)~Probability that a qubit is out of tolerance $k$ calibrations after a bad (red) or good (blue) calibration; grey: base rate. (c)~Log-loss skill of three models for the out-of-tolerance task; dotted: beta-binomial entity-only reference.}
+\label{fig:drift}
+\end{figure*}
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{figs/fig_drift_heat.pdf}
+\caption{Calibration histories of ibm\_kingston: (a)~readout error and (b)~$T_1$ for each qubit (rows, sorted by median) at each daily calibration (columns), January--November 2026. Three-dimensional renderings and an interactive version are in the supplementary material (Appendix~\ref{app:render}).}
+\label{fig:heat}
+\end{figure*}
+
+\subsection{Preregistration scorecard}
+H1 has two components: H1a (the best learner within $0.02$ of the qubit ceiling at $n\ge10^4$) was met; H1b (the Cover--Hart plug-in at or above the reference in at least 80\% of control settings) was not ($\chValidPct\%$). For H2, the rank correlation between predicted and measured skill was $\preRho$, above the preregistered $0.6$, although only $\preHits$ of $\preN$ point intervals contained the measured value and the misses were mostly toward lower skill. H3 (accuracy skill below $0.15$ for earnings and stocks) and H6 (control behaviour) were consistent with the data. For H4 the simulation component was met and the earnings component (edge falling after cleaning) was observed, though the fixed-cohort analysis shows the decline reflects sample selection more than retraining. For H5 no significant quantum advantage was detected; failing to reject is not evidence of absence. The preregistered models' scores are given in the reproducibility package.
+
+\section{Discussion}
+\emph{Persistent label errors.} The central finding is methodological. Errors that are attached to entities and repeat over time can be learned, and time-ordered validation scores the learning as skill (Propositions~\ref{prop:identity}--\ref{prop:wf}). Labels extracted from filings, news and web text are prone to this structure. A disagreement audit is inexpensive: when two rules agree on most rows, a few dozen checked labels bound the measured edge on the population. In the earnings case, the audit could not certify a positive edge, and the fixed-cohort analysis attributes the apparent edge mainly to rows that should not have been scored, rather than to contaminated training.
+
+\emph{Achieved skill versus knowability.} Achieved skill mixes information with model error (Eq.~\eqref{eq:lss}). Table~\ref{tab:atlas} is a comparison of specified tasks and fitted systems; it does not establish that any outcome is intrinsically unpredictable, and near-zero stock skill in particular says nothing about the Bayes ceiling of richer information sets.
+
+\emph{Learnability.} The chaos study shows that, for nearest-neighbour learners, over horizons of $0.5$--$3$ Lyapunov times and in the two systems where rates are identifiable, the sample size needed to approach an ensemble reference grows steeply with the horizon (close to exponentially for Lorenz-63, with the functional form unresolved for R\"ossler), at rates that differ between 1-NN and $k$-NN and with the tolerance. This is a statement about named algorithms against an approximate reference, not a law of learnability.
+
+\emph{Quantum.} Quantum resources changed what could be predicted only by changing the information available: an entangled partner's outcome. On classical data, the simulated circuits showed no detectable advantage. The more practical forecasting problem posed by quantum hardware is classical: its calibrations drift, readout errors partly predictably and coherence times largely not.
+
+\emph{Scope.} The chaos and hardware studies are exploratory and broad; each could be developed into a separate paper with designs tailored to its own questions.
+
+\section{Threats to Validity}\label{sec:threats}
+\emph{Labels.} Earnings labels are machine-extracted; the audit covers only disagreement rows, found one unverifiable row and a second error class (revised guidance), and the removed rows could not be relabelled. \emph{Dependence.} Rows share shocks across entities and time; time-block intervals are reported where shared shocks are plausible but multiway dependence is not fully modelled, and the Diebold--Mariano test is approximate under panel dependence. \emph{Data.} Unresolved point-in-time risks: revised observations (weather) and catalogues (earthquakes), survivorship in the stock universe, guidance revisions, publication delay of calibrations; House data end in 2018; the NWP benchmark is a calibrated proxy over 17 months. \emph{Hardware.} One processor on one day for the live run, a single-chip game rather than a Bell test, third-party calibration polling, and generalisation only across qubits of three processors. \emph{Chaos.} An approximate posterior validated only at larger noise, two learners, one relative noise level, three seeds per system, and horizons of $0.5$--$3$ Lyapunov times. \emph{Multiplicity.} Holm's correction is applied only within the quantum comparison. \emph{Preregistration.} Timing rests on local records; most revision analyses are exploratory.
+
+\section{Conclusion}
+Label errors that persist within entities can manufacture or reverse measured edge and survive time-ordered validation; an exact identity describes the effect, and a disagreement audit with a finite-population guarantee bounds it. In a production earnings model, the apparent edge resided in rows that should not have been scored, and no positive edge could be certified. Around this core, a framework that separates Bayes ceilings of stated information sets from algorithm-specific learnability, achieved-skill comparisons across eleven tasks, and exploratory chaos and hardware studies show how much of a measured edge depends on the reference, the learner and the labels.
+
+\appendices
+\input{appendix_math.tex}
+
+\section{Reproducibility}\label{app:repro}
+The preregistration's SHA-256 digest is\\
+\texttt{\small abee64cc5cd31d0b2212550d03508580}\\
+\texttt{\small 561aa6cc47eb9462462ddb88a983d33c}.\\
+The repository (git branch \texttt{revision-2}; original analyses on \texttt{master}) contains the shared library with unit tests (closed forms, inflation identity, 1-NN asymptotics, audit coverage, GPU simulator against Qiskit), one builder per task, the walk-forward evaluator, the chaos study (\texttt{run\_law3.py}) and posterior validation (\texttt{validate\_posterior.py}), the revision analyses (\texttt{rev2\_analyses.py}), the validation-selected quantum comparison (\texttt{run\_quantum2.py}), a feature-and-timestamp specification with the leakage audit, an environment lockfile, file hashes, and a manifest mapping every table and figure to its script. Raw data whose licences forbid redistribution are replaced by acquisition scripts and hashes. Data sources: Meteostat (CC BY-NC 4.0), Open-Meteo, football-data.co.uk, MIT Election Data and Science Lab (CC0), Yahoo Finance via \texttt{yfinance}, USGS ComCat, SEC EDGAR, IBM calibration histories (CC BY 4.0; replication dataset without licence, analysed but not redistributed), the Delft Bell-test data (4TU.ResearchData), IBM device noise models in \texttt{qiskit-ibm-runtime}, and IBM Quantum job \texttt{dbnk4cc4148s73915tpg}; all accessed in November 2026.
+
+\section{Three-Dimensional Renderings}\label{app:render}
+Figure~\ref{fig:render} reproduces renderings from the interactive companion: the calibration surfaces behind Fig.~\ref{fig:heat}, ensemble certainty on the Lorenz attractor, and the original single-seed learnability surface. They are visual summaries of results reported above and support no additional inference; the learnability surface comes from the superseded single-seed protocol.
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.53\textwidth]{figs/comp_drift3d_readout.png}\hfill
+\includegraphics[width=0.46\textwidth]{figs/comp_drift3d_t1.png}\\[3pt]
+\includegraphics[width=0.49\textwidth]{figs/comp_lorenz_h2.png}\hfill
+\includegraphics[width=0.49\textwidth]{figs/comp_landscape.png}
+\caption{Renderings from the interactive companion. Top: ibm\_kingston calibration surfaces of Fig.~\ref{fig:heat}, $\log_{10}$ readout error and $\log_{10}T_1$ ($\mu$s) over qubit (depth, sorted by median) and calibration day (horizontal). Bottom left: ensemble certainty $2|\hat\eta-\tfrac12|$ of the sign of $x(t+2)$ on the Lorenz attractor ($\sigma_o=0.1$, original single-seed study). Bottom right: the original single-seed 1-NN learnability surface for Lorenz-63 ($\log_{10}$ gap over $\log_{10}n$ and $h$), superseded by Fig.~\ref{fig:law3}.}
+\label{fig:render}
+\end{figure*}
+
+\section*{Acknowledgment}
+Computational experiments, analysis code and drafting were assisted by an AI system (Claude, Anthropic), which is not an author. All reported numbers are produced by the released code.
+
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+
+\end{document}

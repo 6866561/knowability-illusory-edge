@@ -1,0 +1,8 @@
+{
+ "python": "3.13.17 (tags/v3.13.17:64e080d, Oct 21 2026, 14:08:53) [MSC v.1944 64 bit (AMD64)]",
+ "platform": "Windows-11-10.0.26300-SP0",
+ "gpu": "NVIDIA GeForce RTX 5070 Ti Laptop GPU, 621.14",
+ "built": "2026-11-07T16:12:14",
+ "git_branch": "revision-2",
+ "git_commit": "5272db4721b22e3e0aee6ebc99a84bf03c0b3dbe"
+}
