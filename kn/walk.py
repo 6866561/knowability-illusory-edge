@@ -111,10 +111,10 @@ def feature_models(df: pd.DataFrame, cutoffs, xcols, min_train=200, bench=False,
         if xcols:
             Xtr2, Xte2 = _prep(train, test, list(xcols))
             df.loc[te, "p_M4x"] = LogisticRegression(C=0.5, max_iter=2000).fit(Xtr2, ytr).predict_proba(Xte2)[:, 1]
-            if knn:
-                sub = rng.permutation(len(Xtr2))[:50000]
-                nn = KNeighborsClassifier(n_neighbors=1).fit(Xtr2[sub], ytr[sub])
-                df.loc[te, "p_M6"] = nn.predict(Xte2).astype(float)
+            if knn:  # 1-NN on the full F2 inputs (entity rate + features) so Cover-Hart bounds the same information set as M4
+                sub = rng.permutation(len(Xtr))[:50000]
+                nn = KNeighborsClassifier(n_neighbors=1).fit(Xtr[sub], ytr[sub])
+                df.loc[te, "p_M6"] = nn.predict(Xte).astype(float)
             if leo_folds:
                 for f in range(leo_folds):
                     tef = te & df["entity"].map(fold_of).eq(f)
