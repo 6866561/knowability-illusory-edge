@@ -92,6 +92,7 @@ def main(name):
     preds["LR_full"] = LogisticRegression(C=0.5, max_iter=3000).fit(Xf, yf).predict_proba(Xt)[:, 1]
     # classical, same d-dim inputs as the quantum models
     preds["LR_d"] = LogisticRegression(C=0.5, max_iter=3000).fit(Af, yf).predict_proba(At)[:, 1]
+    preds["LR_d_strong"] = LogisticRegression(C=0.01, max_iter=3000).fit(Af, yf).predict_proba(At)[:, 1]  # post hoc
     preds["HGB_d"] = HistGradientBoostingClassifier(max_iter=200, learning_rate=0.05, random_state=SEED).fit(Af, yf).predict_proba(At)[:, 1]
     preds["CQ1_fourier"] = Q.fit_fourier(Af, yf).predict_proba(Q.fourier_features(At))[:, 1]
     # quantum: VQC
@@ -122,11 +123,15 @@ def main(name):
     for k, p in preds.items():
         res[k] = core.skill(yt, p, preds["M0"]); res[k]["auc"] = core.auc(yt, p)
     qn = [k for k in preds if k.startswith("Q")]
-    cn = [k for k in ["LR_d", "HGB_d", "CQ1_fourier", "CQ2_rbf_svm"] if k in preds]
+    cn = [k for k in ["LR_d", "LR_d_strong", "HGB_d", "CQ1_fourier", "CQ2_rbf_svm"] if k in preds]
+    cn_prereg = [k for k in ["LR_d", "HGB_d", "CQ1_fourier", "CQ2_rbf_svm"] if k in preds]
     bq = min(qn, key=lambda k: res[k]["ll"]); bc = min(cn, key=lambda k: res[k]["ll"])
     lq = -(yt * np.log(np.clip(preds[bq], 1e-6, 1)) + (1 - yt) * np.log(np.clip(1 - preds[bq], 1e-6, 1)))
     lc = -(yt * np.log(np.clip(preds[bc], 1e-6, 1)) + (1 - yt) * np.log(np.clip(1 - preds[bc], 1e-6, 1)))
     dm = core.diebold_mariano(lq, lc)
+    bcp = min(cn_prereg, key=lambda k: res[k]["ll"])
+    lcp = -(yt * np.log(np.clip(preds[bcp], 1e-6, 1)) + (1 - yt) * np.log(np.clip(1 - preds[bcp], 1e-6, 1)))
+    dm_prereg = core.diebold_mariano(lq, lcp)
     bs = core.cluster_bootstrap(groups, lambda idx: lq[idx].mean() - lc[idx].mean(), reps=1000)
     # one-sided test of "quantum better": p = P(DM <= observed) under H0
     from scipy import stats
@@ -134,7 +139,9 @@ def main(name):
     out = {"name": name, "n_fit": len(fit), "n_val": len(val), "n_test": len(te), "n_kernel": int(len(ks)), "d": d,
            "pca_var": pca.explained_variance_ratio_.tolist(), "results": res, "best_quantum": bq, "best_classical_same_input": bc,
            "ll_diff_q_minus_c": float(lq.mean() - lc.mean()), "ll_diff_ci": np.percentile(bs, [2.5, 97.5]).tolist(),
-           "dm": dm, "p_quantum_better_one_sided": p_q_better, "timing_s": timing, "secs": time.time() - t0}
+           "dm": dm, "p_quantum_better_one_sided": p_q_better,
+           "prereg_classical_set": {"best": bcp, "ll_diff": float(lq.mean() - lcp.mean()), "dm": dm_prereg,
+                                    "p_quantum_better_one_sided": float(stats.norm.cdf(dm_prereg["dm"]))}, "timing_s": timing, "secs": time.time() - t0}
     (ROOT / "results").mkdir(exist_ok=True)
     (ROOT / "results" / f"quantum_{name}.json").write_text(json.dumps(out, indent=1, default=float))
     print(f"{name}: d={d} test={len(te)} " + " ".join(f"{k}={v['LSS']:.4f}" for k, v in res.items() if k != 'M0')

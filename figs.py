@@ -51,7 +51,7 @@ def fig_quantum():
     x, y, z = np.cos(u) * np.sin(v), np.sin(u) * np.sin(v), np.cos(v)
     A = (1 + np.abs(z)) / 2
     ax.plot_surface(x, y, z, facecolors=cm.viridis(colors.Normalize(0.5, 1)(A)), rstride=1, cstride=1, linewidth=0,
-                    antialiased=True, shade=False, alpha=0.95)
+                    antialiased=True, shade=False, alpha=0.95, rasterized=True)
     lam = 0.2
     ax.plot_wireframe((1 - lam) * x, (1 - lam) * y, (1 - lam) * z, rstride=10, cstride=10, color="k", linewidth=0.25, alpha=0.35)
     th = np.linspace(0, np.pi, 100)
@@ -71,16 +71,16 @@ def fig_quantum():
     ax2.set_xlabel(r"noise on knowledge of $\theta$, $\sigma$"); ax2.set_ylabel("accuracy")
     ax2.legend(loc="lower left"); ax2.set_title("(b) known-ceiling dial")
     ax3 = fig.add_subplot(1, 3, 3)
-    dep = [r["lambda"] for r in d["D1"]["depolarizing"]]
-    ax3.plot(dep, [r["A_star"] for r in d["D1"]["depolarizing"]], "-", color=C["phys"], label="depolarizing (exact)")
     ib = J("d3_ibm_noise")
     if ib:
-        for b in ib["backends"]:
-            for q in b["qubits"]:
-                ax3.plot(q["lambda_equiv"], q["A_dev"], "o", ms=2.6, color=C["q"], alpha=0.75)
-        ax3.plot([], [], "o", ms=3, color=C["q"], label="IBM device noise models")
-    ax3.set_xlabel(r"depolarizing strength $\lambda$"); ax3.set_ylabel(r"$A^*$")
-    ax3.set_xlim(-0.02, 0.6); ax3.set_ylim(0.65, 0.83); ax3.legend(loc="lower left"); ax3.set_title("(c) hardware erodes the ceiling")
+        mk = "osD^v<>p"
+        for i, bk in enumerate(ib["backends"]):
+            ee = [q["alpha_e0"] + q["e1"] for q in bk["qubits"]]
+            ax3.scatter(ee, [q["A_dev"] for q in bk["qubits"]], s=10, marker=mk[i % 8], label=bk["backend"].replace("Fake", ""), alpha=0.85)
+        xx = np.linspace(0, 0.25, 50)
+        ax3.plot(xx, 0.5 + (1 - xx) / math.pi, "k-", lw=0.8, label=r"$1/2+(1-e_0-e_1)/\pi$")
+        ax3.set_xlabel(r"readout error $e_0+e_1$"); ax3.set_ylabel(r"device ceiling $A^*_{\mathrm{dev}}$")
+        ax3.legend(fontsize=5.2, ncol=2, loc="lower left"); ax3.set_title("(c) IBM device noise models")
     fig.tight_layout(w_pad=0.6)
     save(fig, "fig_quantum")
 
@@ -97,7 +97,7 @@ def fig_chaos():
         for i, h in enumerate(["h1", "h2"]):
             ax = fig.add_axes([0.0 + 0.315 * i, 0.12, 0.33, 0.8], projection="3d")
             o = np.argsort(-Z[h])
-            sc = ax.scatter(X[o, 0], X[o, 1], X[o, 2], c=Z[h][o], s=0.35, cmap="inferno", vmin=0, vmax=1, linewidths=0)
+            sc = ax.scatter(X[o, 0], X[o, 1], X[o, 2], c=Z[h][o], s=0.35, cmap="inferno", vmin=0, vmax=1, linewidths=0, rasterized=True)
             ax.view_init(16, -60); pane3d(ax)
             ax.set_xticklabels([]); ax.set_yticklabels([]); ax.set_zticklabels([])
             ax.set_xlabel("$x$", labelpad=-12); ax.set_ylabel("$y$", labelpad=-12); ax.set_zlabel("$z$", labelpad=-12)
@@ -267,7 +267,7 @@ def fig_atlas3d():
     fig = plt.figure(figsize=(COL1, 2.7))
     ax = fig.add_subplot(111, projection="3d")
     rungs = ["base", "+entity", "+features", "+benchmark"]
-    cmap = cm.get_cmap("viridis")
+    cmap = matplotlib.colormaps["viridis"]
     for i, r in enumerate(rows):
         cum = np.cumsum([0] + list(r["shares"][:3]))
         for k in range(4):
@@ -346,6 +346,68 @@ def fig_learning():
 
 ALL = {"quantum": fig_quantum, "chaos": fig_chaos, "learnability": fig_learnability, "illusory": fig_illusory,
        "beta": fig_beta, "atlas": fig_atlas, "atlas3d": fig_atlas3d, "qvc": fig_qvc, "ibm": fig_ibm, "learning": fig_learning}
+
+
+
+def fig_law():
+    d = J("law")
+    if not d or "nn_fits" not in d:
+        return
+    fig, (ax, ax2) = plt.subplots(1, 2, figsize=(COL2 * 0.78, 2.1))
+    cmap = matplotlib.colormaps["plasma"]
+    hs = sorted(float(h) for h in d["nn_fits"])
+    for i, h in enumerate(hs):
+        f = d["nn_fits"][str(h) if str(h) in d["nn_fits"] else str(int(h))]
+        col = cmap(i / (len(hs) - 0.5))
+        n = np.array(f["n"]); g = np.array(f["gaps"])
+        ax.loglog(n, g, "o", ms=2.6, color=col)
+        nn = np.logspace(3, 6.2, 30)
+        ax.loglog(nn, f["c"] * nn ** (-f["exponent"]), "-", lw=0.8, color=col, label=f"$h={h:g}$")
+    ax.axhline(0.05, color="k", ls=":", lw=0.6)
+    ax.set_xlabel("training samples $n$"); ax.set_ylabel("learnability gap $A^*_{\mathrm{phys}}-A_{\mathrm{1NN}}$")
+    ax.legend(fontsize=5.5, ncol=2, loc="lower left"); ax.set_title(r"(a) gap $\propto n^{-\beta}$, $\beta\approx 1/D$")
+    law = d["nn_law_all"]["0.05"]
+    P = np.array(law["points"])
+    ax2.semilogy(P[:, 0], P[:, 1], "o", color="#1b3a6b", ms=3.5, label=r"measured $n^*(h)$ ($\varepsilon=0.05$)")
+    hh = np.linspace(0.3, 4.3, 50)
+    ax2.semilogy(hh, np.exp(law["a"] + law["gamma"] * hh), "-", color="#1b3a6b", lw=0.9,
+                 label=fr"fit: $\gamma={law['gamma']:.2f}$ ($R^2={law['r2']:.3f}$)")
+    lamD = 0.906 * 2.06
+    a0 = np.mean(np.log(P[:, 1]) - lamD * P[:, 0])
+    ax2.semilogy(hh, np.exp(a0 + lamD * hh), "--", color="#c0392b", lw=0.9, label=fr"theory slope $\lambda D_2={lamD:.2f}$")
+    ax2.set_xlabel("forecast horizon $h$"); ax2.set_ylabel("samples to reach the ceiling")
+    ax2.legend(fontsize=6); ax2.set_title("(b) learnability–horizon law")
+    fig.tight_layout(w_pad=1.0)
+    save(fig, "fig_law")
+
+
+ALL["law"] = fig_law
+
+
+def fig_law3d():
+    d = J("law")
+    if not d or "nn_fits" not in d:
+        return
+    hs = sorted(float(h) for h in d["nn_fits"])
+    fits = [d["nn_fits"][k] for k in sorted(d["nn_fits"], key=float)]
+    n = np.array(fits[0]["n"])
+    G = np.array([f["gaps"] for f in fits])
+    Ln, H = np.meshgrid(np.log10(n), hs)
+    fig = plt.figure(figsize=(COL1, 2.7))
+    ax = fig.add_subplot(111, projection="3d")
+    Z = np.log10(np.clip(G, 1e-3, None))
+    ax.plot_surface(Ln, H, Z, cmap="plasma_r", linewidth=0.2, edgecolor="k", alpha=0.95, antialiased=True)
+    ax.contour(Ln, H, Z, levels=[np.log10(0.05)], colors="w", linewidths=1.6, offset=None)
+    ax.contour(Ln, H, Z, levels=[np.log10(0.05)], zdir="z", offset=-3.2, colors="k", linewidths=0.9)
+    ax.set_zlim(-3.2, 0); ax.view_init(28, -128); pane3d(ax)
+    ax.set_xlabel(r"$\log_{10} n$", labelpad=-4); ax.set_ylabel(r"horizon $h$", labelpad=-4)
+    ax.set_zlabel(r"$\log_{10}$ gap", labelpad=-4)
+    ax.set_title(r"learnability landscape (white: gap $=0.05$)", pad=-2)
+    save(fig, "fig_law3d")
+
+
+ALL["law3d"] = fig_law3d
+
 
 if __name__ == "__main__":
     for k in (sys.argv[1:] or ALL):

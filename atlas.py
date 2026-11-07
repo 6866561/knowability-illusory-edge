@@ -23,6 +23,8 @@ def domain_row(name, label, short, primary="p_M4"):
     d = J(name)
     if not d:
         return None
+    if primary not in d["summary"]:  # results file predates the nested models
+        primary = {"p_M4n": "p_M4", "p_M4bn": "p_M4b"}[primary]
     s = d["summary"][primary]
     return {"name": name, "label": label, "short": short, "shares": shares_from_ladder(d["ladder"]),
             "LSS": s["LSS"], "LSS_ci": s["LSS_ci"], "acc": s["acc"], "acc0": s["acc0"], "S_acc": s["S_acc"],
@@ -54,7 +56,9 @@ def main():
                        ("d4_weather", "Rain tomorrow", "rain"), ("d4_weather_nwp", "Rain tomorrow (+NWP)", "rain+NWP"),
                        ("d9_quakes", "Earthquakes (week, cell)", "quakes"), ("d5_football", "Football (+odds)", "football"),
                        ("d7_earnings", "Earnings guidance", "earnings"), ("d8_stocks", "Stock direction", "stocks")]:
-        p = "p_M4b" if n in ("d5_football", "d4_weather_nwp") else ("combo" if n == "d7_earnings" else "p_M4")
+        # atlas uses the nested top rung so that LSS equals the sum of the entropy shares (Deviation 4);
+        # the preregistration scorecard (make_tables.py) still uses the preregistered p_M4.
+        p = "p_M4bn" if n in ("d5_football", "d4_weather_nwp") else ("combo" if n == "d7_earnings" else "p_M4n")
         r = domain_row(n, lab, sh, primary=p) if n != "d7_earnings" else None
         if n == "d7_earnings":
             d = J("d7_analysis")
