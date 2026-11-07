@@ -155,7 +155,7 @@ def fig_illusory():
     sim = [r for r in rows if r["mode"] == "persistent" and r["r"] == 1.0 and r["T"] == 32 and r["conc"] > 1e8 and (1 - r["pi"]) * r["m"] > 0.5]
     ax.scatter([r["pi"] for r in sim], [r["m"] for r in sim], [r["meas"] for r in sim], color="#a04000", s=6, depthshade=False)
     ax.scatter([r["pi"] for r in sim], [r["m"] for r in sim], [r["true"] for r in sim], color="#1b3a6b", s=6, depthshade=False)
-    ax.set_xlabel(r"corrupted share $\pi$", labelpad=-4); ax.set_ylabel(r"true rate $m$", labelpad=-4)
+    ax.set_xlabel(r"corrupted share $\omega$", labelpad=-4); ax.set_ylabel(r"true rate $m$", labelpad=-4)
     ax.set_zlabel("edge over base rate", labelpad=-4); ax.view_init(20, -120); pane3d(ax)
     ax.set_title("(a) measured (orange) vs true (blue)", pad=-4)
     ax2 = fig.add_subplot(1, 3, 2)
@@ -183,7 +183,7 @@ def fig_illusory():
             ax3.text(1.45, ba["audit"]["delta_lower"] + 0.002, "audit 95% lower bound", ha="right", fontsize=6)
         ax3.axhline(0, color="k", lw=0.5)
         ax3.set_xticks([0, 1]); ax3.set_xticklabels(["before\ncleaning", "after\ncleaning"])
-        ax3.set_ylim(-0.05, 0.045); ax3.legend(loc="lower left", fontsize=5.5)
+        ax3.set_ylim(-0.05, 0.045); ax3.legend(loc="upper right", fontsize=5.5)
         ax3.set_ylabel("EB edge over base rate"); ax3.set_title("(c) earnings, new tickers")
     fig.subplots_adjust(left=0.02, right=0.99, wspace=0.42, bottom=0.17, top=0.9)
     save(fig, "fig_illusory")
@@ -248,12 +248,13 @@ def fig_atlas():
             ax.plot([r["LSS"], min(r["kU"], 1)], [yi, yi], color="k", lw=0.6)
             ax.plot(min(r["kU"], 1), yi, "|", color="k", ms=5)
         ax.text(1.01, yi, f"{r['LSS']:.3f}", va="center", fontsize=6.5)
-    ax.set_yticks(y); ax.set_yticklabels([r["label"] for r in rows]); ax.set_xlim(0, 1.0)
+    ax.set_yticks(y); ax.set_yticklabels([r["label"].replace("\\_", "_") for r in rows]); ax.set_xlim(0, 1.0)
     ax.set_xlabel(r"share of outcome entropy $H(Y)$ (knowable fraction $\kappa$ = coloured part)")
     ax.legend(ncol=2, loc="lower center", bbox_to_anchor=(0.45, 1.0), fontsize=6.5)
     for r in rows:
         ax2.scatter(r["acc"], r["S_acc"], s=14, color="#2e4057")
-        off = {"IBM": (-16, 5), "president": (4, -9), "quakes": (-34, 3), "rain": (4, -9), "qubit": (3, 3)}.get(r["short"], (2, 2))
+        off = {"IBM": (-18, 3), "president": (4, -9), "quakes": (-34, 3), "rain": (4, -9), "qubit": (-12, 7),
+               "live IBM": (5, -6), "bad qubit": (4, -8)}.get(r["short"], (2, 2))
         ax2.annotate(r["short"], (r["acc"], r["S_acc"]), fontsize=6, xytext=off, textcoords="offset points")
     ax2.set_xlabel("raw accuracy"); ax2.set_ylabel(r"skill over base rate $S_{acc}$")
     ax2.set_title("high accuracy $\\neq$ high knowability")
