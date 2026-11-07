@@ -100,7 +100,8 @@ def main():
     rows = []
     for r in A["rows"]:
         lci = r.get("LSS_ci")
-        lss = f"{r['LSS']:.3f}" + (f" {ci(lci)}" if lci else "")
+        ff = "{:.4f}" if abs(r["LSS"]) < 0.01 else "{:.3f}"
+        lss = ff.format(r["LSS"]) + (f" {ci(lci, ff)}" if lci else "")
         ku = f"{r['kU']:.2f}" if r.get("kU") is not None else "--"
         n = f"{r['n']:,}" if r.get("n") else "--"
         tau = f"{r['tau']:.2f}" if r.get("tau") is not None else "--"

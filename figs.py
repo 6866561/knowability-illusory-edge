@@ -77,7 +77,7 @@ def fig_quantum():
         for i, bk in enumerate(ib["backends"]):
             ee = [q["alpha_e0"] + q["e1"] for q in bk["qubits"]]
             ax3.scatter(ee, [q["A_dev"] for q in bk["qubits"]], s=10, marker=mk[i % 8], label=bk["backend"].replace("Fake", ""), alpha=0.85)
-        xx = np.linspace(0, 0.25, 50)
+        xx = np.linspace(0, 0.45, 50)
         ax3.plot(xx, 0.5 + (1 - xx) / math.pi, "k-", lw=0.8, label=r"$1/2+(1-e_0-e_1)/\pi$")
         ax3.set_xlabel(r"readout error $e_0+e_1$"); ax3.set_ylabel(r"device ceiling $A^*_{\mathrm{dev}}$")
         ax3.legend(fontsize=5.2, ncol=2, loc="lower left"); ax3.set_title("(c) IBM device noise models")
@@ -175,15 +175,15 @@ def fig_illusory():
         ax3.bar([0], [kept], color="#2e86c1", width=0.55, label="from correctly labelled rows")
         ax3.bar([0], [rem], bottom=[kept], color="#e67e22", width=0.55, label="from rows later found mislabelled")
         ax3.bar([1], [aft], color="#2e86c1", width=0.55)
-        ax3.text(0, kept + rem + 0.002, f"{100 * (kept + rem):+.1f} pts", ha="center", fontsize=7)
+        ax3.text(0, kept + rem + 0.002, f"{100 * (kept + rem):+.2f} pts", ha="center", fontsize=7)
         ax3.text(0.33, kept + rem / 2, f"{100 * rem / (kept + rem):.0f}%", fontsize=7, color="#a04000", va="center")
-        ax3.text(1, aft - 0.005, f"{100 * aft:+.1f} pts", ha="center", fontsize=7)
+        ax3.text(1, aft - 0.005, f"{100 * aft:+.2f} pts", ha="center", fontsize=7)
         if "audit" in ba and ba["audit"].get("delta_lower") is not None:
             ax3.axhline(ba["audit"]["delta_lower"], ls="--", color="k", lw=0.6)
             ax3.text(1.45, ba["audit"]["delta_lower"] + 0.002, "audit 95% lower bound", ha="right", fontsize=6)
         ax3.axhline(0, color="k", lw=0.5)
         ax3.set_xticks([0, 1]); ax3.set_xticklabels(["before\ncleaning", "after\ncleaning"])
-        ax3.set_ylim(-0.05, 0.04); ax3.legend(loc="upper right", fontsize=6)
+        ax3.set_ylim(-0.05, 0.045); ax3.legend(loc="lower left", fontsize=5.5)
         ax3.set_ylabel("EB edge over base rate"); ax3.set_title("(c) earnings, new tickers")
     fig.subplots_adjust(left=0.02, right=0.99, wspace=0.42, bottom=0.17, top=0.9)
     save(fig, "fig_illusory")
@@ -253,7 +253,8 @@ def fig_atlas():
     ax.legend(ncol=2, loc="lower center", bbox_to_anchor=(0.45, 1.0), fontsize=6.5)
     for r in rows:
         ax2.scatter(r["acc"], r["S_acc"], s=14, color="#2e4057")
-        ax2.annotate(r["short"], (r["acc"], r["S_acc"]), fontsize=6, xytext=(2, 2), textcoords="offset points")
+        off = {"IBM": (-16, 5), "president": (4, -9), "quakes": (-34, 3), "rain": (4, -9), "qubit": (3, 3)}.get(r["short"], (2, 2))
+        ax2.annotate(r["short"], (r["acc"], r["S_acc"]), fontsize=6, xytext=off, textcoords="offset points")
     ax2.set_xlabel("raw accuracy"); ax2.set_ylabel(r"skill over base rate $S_{acc}$")
     ax2.set_title("high accuracy $\\neq$ high knowability")
     fig.tight_layout(w_pad=1.0)
