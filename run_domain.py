@@ -40,17 +40,18 @@ def main(name):
     df = walk.feature_models(df, cut, xcols, min_train=meta.get("min_train", 500),
                              bench=meta.get("bench", False), leo_folds=meta.get("leo_folds", 5))
     scored = df[df["p_M4"].notna()].copy()           # common evaluation set: rows every model can score
-    models = ["p_M1", "p_M2", "p_M4", "p_M5", "p_M4x", "p_M4x_leo"] + (["bench", "p_M4b"] if meta.get("bench") else [])
+    models = ["p_M1", "p_M2", "p_M4", "p_M5", "p_M4x", "p_M4x_leo", "p_M2n", "p_M4n", "p_M5n"] +         (["bench", "p_M4b", "p_M4bn"] if meta.get("bench") else [])
     reps = meta.get("reps", 1000)
     summ = walk.summarize(scored, models, base="p_M0", reps=reps)
     ceil = walk.ceilings(scored)
     H = float(core.h(scored["y"].mean()))
     # information ladder (entropy shares from out-of-sample log losses; monotone by construction of nesting)
     ll0 = core.log_loss(scored["y"], scored["p_M0"])
-    ladder = {"LL_M0": ll0, "LL_F1": core.log_loss(scored["y"], scored["p_M2"]),
-              "LL_F2": core.log_loss(scored["y"], scored["p_M4"])}
+    ladder = {"LL_M0": ll0, "LL_F1": core.log_loss(scored["y"], scored["p_M2n"]),
+              "LL_F2": core.log_loss(scored["y"], scored["p_M4n"])}   # nested rungs (Deviation 4)
+    ladder_prereg = {"LL_F1": core.log_loss(scored["y"], scored["p_M2"]), "LL_F2": core.log_loss(scored["y"], scored["p_M4"])}
     if meta.get("bench"):
-        ladder["LL_F3"] = core.log_loss(scored["y"], scored["p_M4b"])
+        ladder["LL_F3"] = core.log_loss(scored["y"], scored["p_M4bn"])
     # transfer ratio for feature-only model
     tau = None
     if scored["p_M4x_leo"].notna().any():
@@ -73,7 +74,7 @@ def main(name):
     cov = {m: core.coverage_curve(scored["y"].to_numpy(), scored[m].to_numpy()) for m in ["p_M2", "p_M4"]}
     out = {"name": name, "n": int(len(scored)), "n_all": int(len(df)), "entities": int(scored["entity"].nunique()),
            "period": [str(scored["t"].min()), str(scored["t"].max())], "base_rate": float(scored["y"].mean()),
-           "H_Y": H, "summary": summ, "ceilings": ceil, "ladder": ladder, "tau": tau, "lz": lz,
+           "H_Y": H, "summary": summ, "ceilings": ceil, "ladder": ladder, "ladder_prereg": ladder_prereg, "tau": tau, "lz": lz,
            "coverage": cov, "secs": time.time() - t0, "meta": meta}
     (ROOT / "results").mkdir(exist_ok=True)
     (ROOT / "results" / f"{name}.json").write_text(json.dumps(out, indent=1, default=float))

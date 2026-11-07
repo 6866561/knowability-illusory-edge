@@ -86,8 +86,10 @@ def feature_models(df: pd.DataFrame, cutoffs, xcols, min_train=200, bench=False,
     """Refit M4/M5/M6 at each cutoff on rows with avail < cutoff; predict rows with cutoff <= t < next."""
     df = df.copy()
     df["lM2"] = logit(df["p_M2"])
+    df["lM0"] = logit(df["p_M0"])
     cols = ["lM2"] + list(xcols)
-    for c in ["p_M4", "p_M5", "p_M6", "p_M4b", "p_M4x_leo", "p_M4x"]:
+    ncols = ["lM0", "lM2"] + list(xcols)   # nested information sets: F0 within F1 within F2 (Deviation 4)
+    for c in ["p_M4", "p_M5", "p_M6", "p_M4b", "p_M4x_leo", "p_M4x", "p_M2n", "p_M4n", "p_M5n", "p_M4bn"]:
         df[c] = np.nan
     if bench:
         df["lbench"] = logit(df["bench"])
@@ -108,6 +110,12 @@ def feature_models(df: pd.DataFrame, cutoffs, xcols, min_train=200, bench=False,
         hgb = HistGradientBoostingClassifier(max_iter=200, learning_rate=0.05, max_leaf_nodes=15,
                                              l2_regularization=1.0, random_state=SEED).fit(Xtr, ytr)
         df.loc[te, "p_M5"] = hgb.predict_proba(Xte)[:, 1]
+        a1, b1 = _prep(train, test, ["lM0", "lM2"])
+        df.loc[te, "p_M2n"] = LogisticRegression(C=0.5, max_iter=2000).fit(a1, ytr).predict_proba(b1)[:, 1]
+        an, bn = _prep(train, test, ncols)
+        df.loc[te, "p_M4n"] = LogisticRegression(C=0.5, max_iter=2000).fit(an, ytr).predict_proba(bn)[:, 1]
+        df.loc[te, "p_M5n"] = HistGradientBoostingClassifier(max_iter=200, learning_rate=0.05, max_leaf_nodes=15,
+                                                              l2_regularization=1.0, random_state=SEED).fit(an, ytr).predict_proba(bn)[:, 1]
         if xcols:
             Xtr2, Xte2 = _prep(train, test, list(xcols))
             df.loc[te, "p_M4x"] = LogisticRegression(C=0.5, max_iter=2000).fit(Xtr2, ytr).predict_proba(Xte2)[:, 1]
@@ -128,6 +136,8 @@ def feature_models(df: pd.DataFrame, cutoffs, xcols, min_train=200, bench=False,
             c2 = cols + ["lbench"]
             a, b = _prep(train, test, c2)
             df.loc[te, "p_M4b"] = LogisticRegression(C=0.5, max_iter=2000).fit(a, ytr).predict_proba(b)[:, 1]
+            a, b = _prep(train, test, ncols + ["lbench"])
+            df.loc[te, "p_M4bn"] = LogisticRegression(C=0.5, max_iter=2000).fit(a, ytr).predict_proba(b)[:, 1]
     return df
 
 
