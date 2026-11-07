@@ -29,7 +29,7 @@ def fig_hardware():
         ax.plot([x["theta"] for x in r], [x["counts"].get("1", 0) / live["shots"] for x in r], mk, ms=2.8, color=col,
                 label=f"qubit {q}: $A^*_{{\\rm dev}}={live[f'qubit_{q}']['A_dev']:.4f}$")
     ax.set_xlabel(r"rotation $\theta$"); ax.set_ylabel(r"$P(\mathrm{read}\ 1)$")
-    ax.set_title("(a) live ibm_kingston, 4,000 shots"); ax.legend(fontsize=5.6, loc="upper left")
+    ax.set_title("(a) live ibm_kingston, 4,000 shots"); ax.legend(fontsize=5.6, loc="lower right")
     ax = axs[1]
     rows = []
     rows.append(("statevector simulation", ctl["D1"]["chsh"]["quantum"], 1.96 * math.sqrt(TS * (1 - TS) / 200000), C["phys"]))
@@ -51,7 +51,7 @@ def fig_hardware():
     ax.text(0.75, 1.01, "classical 0.75", fontsize=5.5, ha="center", va="bottom", transform=tr)
     ax.text(TS, 1.01, r"$\cos^2\frac{\pi}{8}$", fontsize=6, ha="center", va="bottom", color=C["phys"], transform=tr)
     ax.set_yticks(y); ax.set_yticklabels([r[0] for r in rows], fontsize=5.6)
-    ax.set_xlim(0.68, 0.875); ax.set_xlabel("CHSH win rate"); ax.set_title("(b) entanglement as side information")
+    ax.set_xlim(0.68, 0.875); ax.set_xlabel("CHSH win rate"); ax.set_title("(b) entanglement as side information", pad=10)
     ax = axs[2]
     p = bell["prediction_Bob_y"]
     sim = ctl["D1"]["side_info"]
@@ -121,9 +121,9 @@ def fig_drift():
         for x, c in zip(xs, cis):
             ax.plot([x, x], c, color="k", lw=0.8)
         ax.axhline(tb["ceiling"]["kappa"], color=col, ls=":", lw=0.9)
-    ax.text(-0.45, 0.41, "entity-only ceilings (dotted)", fontsize=5.5, ha="left")
+    ax.text(-0.45, 0.415, "beta-binomial entity-only reference (dotted)", fontsize=5.2, ha="left")
     ax.set_xticks(range(len(mods))); ax.set_xticklabels([m[1] for m in mods], fontsize=6.5)
-    ax.set_ylabel("log-loss skill (LSS)"); ax.legend(fontsize=5.6, loc="upper left"); ax.set_ylim(0, 0.5)
+    ax.set_ylabel("log-loss skill (LSS)"); ax.legend(fontsize=5.6, loc="upper right", ncol=2); ax.set_ylim(0, 0.56)
     ax.set_title("(c) will a qubit be bad next?")
     fig.tight_layout(w_pad=0.6)
     save(fig, "fig_drift")

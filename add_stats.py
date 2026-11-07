@@ -5,7 +5,7 @@ import pandas as pd
 from scipy import stats
 
 ROOT = pathlib.Path(__file__).resolve().parent
-RES, DATA, GEN = ROOT / "results", ROOT.parent / "data", ROOT.parent / "paper" / "gen"
+RES, DATA, GEN = ROOT / "results", ROOT.parent / "data", ROOT.parent / __import__("os").environ.get("KN_PAPER", "paper") / "gen"
 sys.path.insert(0, str(ROOT))
 from kn import core
 

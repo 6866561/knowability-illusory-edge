@@ -4,7 +4,8 @@ import json, math, pathlib
 import numpy as np
 
 ROOT = pathlib.Path(__file__).resolve().parent
-RES, GEN = ROOT / "results", ROOT.parent / "paper" / "gen"
+import os
+RES, GEN = ROOT / "results", ROOT.parent / os.environ.get("KN_PAPER", "paper") / "gen"
 J = lambda n: json.loads((RES / f"{n}.json").read_text())
 M = {}
 def mac(k, v, f="{:.3f}"):

@@ -4,7 +4,8 @@ import numpy as np
 
 ROOT = pathlib.Path(__file__).resolve().parent
 RES = ROOT / "results"
-GEN = ROOT.parent / "paper" / "gen"
+import os
+GEN = ROOT.parent / os.environ.get("KN_PAPER", "paper") / "gen"
 GEN.mkdir(parents=True, exist_ok=True)
 sys_path = None
 

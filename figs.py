@@ -9,7 +9,8 @@ from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 
 ROOT = pathlib.Path(__file__).resolve().parent
 RES = ROOT / "results"
-OUT = ROOT.parent / "paper" / "figs"
+import os
+OUT = ROOT.parent / os.environ.get("KN_PAPER", "paper") / "figs"
 OUT.mkdir(parents=True, exist_ok=True)
 sys.path.insert(0, str(ROOT))
 from kn import core

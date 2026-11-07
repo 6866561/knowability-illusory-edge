@@ -12,11 +12,12 @@ def J(n):
 
 
 def shares_from_ladder(lad):
+    # revision 2: signed achieved score improvements (no clipping); they are not conditional mutual informations
     ll0 = lad["LL_M0"]
-    f1 = max(ll0 - lad["LL_F1"], 0) / ll0
-    f2 = max(lad["LL_F1"] - lad["LL_F2"], 0) / ll0
-    f3 = max(lad["LL_F2"] - lad.get("LL_F3", lad["LL_F2"]), 0) / ll0 if "LL_F3" in lad else 0.0
-    return [f1, f2, f3, max(1 - f1 - f2 - f3, 0)]
+    f1 = (ll0 - lad["LL_F1"]) / ll0
+    f2 = (lad["LL_F1"] - lad["LL_F2"]) / ll0
+    f3 = (lad["LL_F2"] - lad.get("LL_F3", lad["LL_F2"])) / ll0 if "LL_F3" in lad else 0.0
+    return [f1, f2, f3, 1 - f1 - f2 - f3]
 
 
 def domain_row(name, label, short, primary="p_M4"):
