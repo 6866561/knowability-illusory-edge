@@ -18,6 +18,14 @@ Branch `revision-2` holds the current analyses; `master` holds the original anal
 - `manuscript_*/`: LaTeX sources, generated tables and macros, figures and PDFs; `manuscript_rev2/docs/` contains the issue ledger, the responses to review, the final assessment and the leakage specification; `manuscript_rev2/release/` contains the environment lockfile, file hashes and the table/figure-to-script manifest
 
 ## Reproducing
+Clean-room check of the principal CPU results (about 30-40 minutes):
+```
+python -m venv .venv && .venv/Scripts/python -m pip install -r requirements-cpu.txt   # (Linux/macOS: .venv/bin/python)
+.venv/Scripts/python reproduce.py
+```
+`reproduce.py` re-runs the analyses and compares every number with the committed results (relative tolerance 1e-9); it writes `results/reproduction.json` and `reproduction_log.txt` and lists what it does not cover.
+
+Full pipeline:
 ```
 pip install -r manuscript_rev2/release/environment.lock.txt
 python -m pytest -q tests

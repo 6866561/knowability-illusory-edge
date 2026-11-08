@@ -4,7 +4,8 @@ import json, pathlib, time, urllib.request
 import pandas as pd
 
 ROOT = pathlib.Path(__file__).resolve().parent
-OUT = ROOT.parent / "raw" / "sec_audit"; OUT.mkdir(parents=True, exist_ok=True)
+import sys as _sys; _sys.path.insert(0, str(ROOT)); from kn.paths import DATA, RAW
+OUT = RAW / "sec_audit"; OUT.mkdir(parents=True, exist_ok=True)
 UA = {"User-Agent": "KnowabilityResearch research-bot@example.org"}
 
 
@@ -13,7 +14,7 @@ def get(url):
         return r.read()
 
 
-aud = pd.read_csv(ROOT.parent / "data" / "d7_audit_results.csv")
+aud = pd.read_csv(DATA / "d7_audit_results.csv")
 tick = sorted(aud.issuer.unique())
 mp = {v["ticker"]: int(v["cik_str"]) for v in json.loads(get("https://www.sec.gov/files/company_tickers.json")).values()}
 for t in tick:

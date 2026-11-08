@@ -18,6 +18,7 @@ import numpy as np, pandas as pd
 from scipy import stats
 
 ROOT = pathlib.Path(__file__).resolve().parent; K = ROOT.parent
+import sys as _sys; _sys.path.insert(0, str(ROOT)); from kn.paths import DATA, RAW
 sys.path.insert(0, str(ROOT))
 from kn.core import pigeonhole_ratio_bootstrap
 
@@ -109,7 +110,7 @@ for Ktrue in range(ND + 1):
     exact.append(float(sum(p for e, p in enumerate(pe) if KU[e] >= Ktrue)))
 exact_min = min(exact)
 
-samp = pd.read_csv(K / "data" / "d7_harvested_audit_sample.csv")
+samp = pd.read_csv(DATA / "d7_harvested_audit_sample.csv")
 w_real = samp["weight"].to_numpy(); W_TOTAL = 383.0
 issuer = pd.factorize(samp["entity"])[0]
 

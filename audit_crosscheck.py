@@ -11,8 +11,9 @@ import json, pathlib, re
 import numpy as np, pandas as pd
 
 ROOT = pathlib.Path(__file__).resolve().parent; K = ROOT.parent
-aud = pd.read_csv(K / "data" / "d7_audit_results.csv")
-smp = pd.read_csv(K / "data" / "d7_harvested_audit_sample.csv").reset_index().rename(columns={"index": "row_id"})
+import sys as _sys; _sys.path.insert(0, str(ROOT)); from kn.paths import DATA, RAW
+aud = pd.read_csv(DATA / "d7_audit_results.csv")
+smp = pd.read_csv(DATA / "d7_harvested_audit_sample.csv").reset_index().rename(columns={"index": "row_id"})
 d = aud.drop(columns=["fiscal_end", "period"], errors="ignore").merge(smp, on="row_id", how="left")
 assert len(d) == 40 and (d.issuer == d.entity).all()
 TEXT = K / "pkg_rerun" / "data" / "edgar" / "text"
@@ -20,7 +21,7 @@ TOL = 0.005
 
 
 def eps_facts(ticker):
-    f = json.loads((K / "raw" / "sec_audit" / f"{ticker}.json").read_text())
+    f = json.loads((RAW / "sec_audit" / f"{ticker}.json").read_text())
     g = f.get("facts", {}).get("us-gaap", {})
     out = []
     for tag in ("EarningsPerShareDiluted", "EarningsPerShareBasicAndDiluted"):
@@ -81,7 +82,7 @@ for _, r in d.iterrows():
     rows.append(rec)
 
 o = pd.DataFrame(rows)
-o.to_csv(K / "data" / "d7_audit_crosscheck.csv", index=False)
+o.to_csv(DATA / "d7_audit_crosscheck.csv", index=False)
 summ = {"n": len(o), "eps_status": o.eps_status.value_counts().to_dict(), "guid_status": o.guid_status.value_counts().to_dict(),
         "eps_by_ai_verdict": {f"{a}|{b}": int(v) for (a, b), v in o.groupby(["ai_verdict", "eps_status"]).size().items()},
         "guid_by_ai_verdict": {f"{a}|{b}": int(v) for (a, b), v in o.groupby(["ai_verdict", "guid_status"]).size().items()}}
@@ -92,7 +93,7 @@ print(o[o.guid_status != "range_found_gaap_diluted"][["row_id", "issuer", "perio
 
 # ---- sensitivity of the audit bound to stricter treatments of rows not confirmed by both checks
 from scipy import stats
-d7 = pd.read_parquet(K / "data" / "d7_combined.parquet").reset_index(drop=True)
+d7 = pd.read_parquet(DATA / "d7_combined.parquet").reset_index(drop=True)
 hv = d7[d7["src"] != "audited20"].reset_index(drop=True)
 y, w = hv["y"].to_numpy().astype(int), hv["weight"].to_numpy()
 de, df_ = (hv["eb_beta"].to_numpy() >= .5).astype(int), (hv["freq"].to_numpy() >= .5).astype(int)

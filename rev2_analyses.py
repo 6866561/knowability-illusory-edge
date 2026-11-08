@@ -6,7 +6,8 @@ import pandas as pd
 from scipy import stats, integrate
 
 ROOT = pathlib.Path(__file__).resolve().parent
-RES, DATA = ROOT / "results", ROOT.parent / "data"
+from kn.paths import DATA
+RES = ROOT / "results"
 sys.path.insert(0, str(ROOT))
 from kn import core
 OUT = {}

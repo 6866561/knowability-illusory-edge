@@ -13,12 +13,13 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 ROOT = pathlib.Path(__file__).resolve().parent; K = ROOT.parent
+import sys as _sys; _sys.path.insert(0, str(ROOT)); from kn.paths import DATA, RAW
 sys.path.insert(0, str(ROOT))
 import figs as F
 F.OUT = K / "paper_rev" / "figs"
 from figs import save, COL1
 
-b = pd.read_parquet(K / "data" / "d7_before_after.parquet")
+b = pd.read_parquet(DATA / "d7_before_after.parquet")
 d = b[b.scored_before == 1].copy()
 d["inv"] = d.removed_by != "none"
 w = d.weight_before.to_numpy(); W = w.sum()
@@ -37,7 +38,7 @@ tab = pd.DataFrame({
     "edge_pts_invalid": d[d.inv].groupby("entity").contrib.sum(), "edge_pts_valid": d[~d.inv].groupby("entity").contrib.sum(),
 }).fillna({"invalid_rows": 0, "invalid_periods": 0, "reasons": "", "disagreements_invalid": 0, "edge_pts_invalid": 0.0, "edge_pts_valid": 0.0})
 tab = tab.sort_values("edge_pts_invalid", ascending=False)
-tab.to_csv(K / "data" / "d7_issuer_breakdown.csv")
+tab.to_csv(DATA / "d7_issuer_breakdown.csv")
 
 inv = d[d.inv]
 top2 = tab.head(2)
