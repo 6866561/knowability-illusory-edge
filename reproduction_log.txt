@@ -1,0 +1,357 @@
+=== unit tests: -m pytest -q tests/test_core.py tests/test_rev2.py (exit 0, 8s)
+..............                                                           [100%]
+14 passed in 7.00s
+
+
+=== audit bounds, earnings cohort, readout ceilings, time-block and two-way intervals: rev2_analyses.py (exit 0, 114s)
+{
+ "audit": {
+  "exclude_unverifiable": {
+   "e": 2,
+   "n": 39,
+   "N_D": 82,
+   "K_U_hypergeom": 10,
+   "rho_U_hypergeom": 0.12195121951219512,
+   "rho_U_clopper_pearson": 0.15276510530744303,
+   "W_top_KU": 10.0,
+   "delta_lower_unweighted_hyper": null,
+   "delta_lower_weighted_hyper": -0.06096605744125326,
+   "delta_lower_cp_PDw": -0.040802146988359024,
+   "tight": {
+    "w_sample_problem_rows": 1.5,
+    "n_sample_problem_rows": 2,
+    "n_unaudited": 42,
+    "w_top_unaudited": 8.0,
+    "delta_lower_weighted_hyper_tight": -0.05835509138381201
+   }
+  },
+  "unverifiable_as_wrong": {
+   "e": 3,
+   "n": 40,
+   "N_D": 82,
+   "K_U_hypergeom": 12,
+   "rho_U_hypergeom": 0.14634146341463414,
+   "rho_U_clopper_pearson": 0.18258685001590122,
+   "W_top_KU": 12.0,
+   "delta_lower_unweighted_hyper": null,
+   "delta_lower_weighted_hyper": -0.07140992167101827,
+   "delta_lower_cp_PDw": -0.04705978201813211,
+   "tight": {
+    "w_sample_problem_rows": 1.75,
+    "n_sample_problem_rows": 3,
+    "n_unaudited": 42,
+    "w_top_unaudited": 9.0,
+    "delta_lower_weighted_hyper_tight": -0.06488250652741515
+   }
+  }
+ },
+ "power": 8235,
+ "cohort": {
+  "fixed_cohort_rows": 587,
+  "fixed_cohort_tickers": 82,
+  "A_archived_before_sweep_on_cohort": 0.004631379962192815,
+  "A_ci": [
+   -0.03630784481339657,
+   0.04695725949564428
+  ],
+  "B_after_sweep_retrained_on_cohort": -0.008081285444234403,
+  "B_ci": [
+   -0.03916925336753032,
+   0.022194565380530513
+  ],
+  "B_minus_A_paired": -0.012712665406427218,
+  "B_minus_A_ci": [
+   -0.044692052861073285,
+   0.018825141491928
+  ],
+  "removed_rows": 76,
+  "removed_rows_edge_archived_original_labels": 0.2012987012987013,
+  "removed_by_counts": {
+   "continuing_ops": 34,
+   "scale_check": 33,
+   "quarter_ordinal": 9
+  }
+ },
+ "live": {
+  "5": [
+   0.8148,
+   [
+    0.8132,
+    0.8164
+   ],
+   0.0046,
+   0.0065
+  ],
+  "42": [
+   0.8127,
+   [
+    0.8111,
+    0.8144
+   ],
+   0.0043,
+   0.0132
+  ]
+ },
+ "nm_diff": [
+  2.194639957575628e-05,
+  8.987371229673968e-06
+ ],
+ "time_block": {
+  "d4_weather": [
+   0.0575,
+   [
+    0.055,
+    0.0602
+   ],
+   252
+  ],
+  "d4_weather_nwp": [
+   0.3461,
+   [
+    0.3174,
+    0.3731
+   ],
+   17
+  ],
+  "d5_football": [
+   0.1145,
+   [
+    0.1082,
+    0.121
+   ],
+   169
+  ],
+  "d6_house": [
+   0.167,
+   [
+    0.1275,
+    0.2012
+   ],
+   17
+  ],
+  "d6_president": [
+   0.3455,
+   [
+    0.0497,
+    0.603
+   ],
+   9
+  ],
+  "d9_quakes": [
+   0.0488,
+   [
+    0.0448,
+    0.0528
+   ],
+   80
+  ],
+  "d7_earnings": [
+   0.0632,
+   [
+    0.0322,
+    0.0941
+   ],
+   18
+  ]
+ }
+}
+
+
+=== issuer-level breakdown: issuer_breakdown.py (exit 0, 3s)
+valid_rows": 18,
+ "top2_edge_invalid_pts": 1.3221153846153848,
+ "issuers_invalid_ge2_periods": 9,
+ "invalid_rows_in_issuers_ge2_periods": 50,
+ "beat_rate_invalid": 0.3815789473684211,
+ "beat_rate_valid": 0.5903814262023217,
+ "eb_matches_record_invalid": 0.631578947368421,
+ "base_matches_record_invalid": 0.3815789473684211,
+ "eb_matches_record_valid": 0.6102819237147595,
+ "base_matches_record_valid": 0.5903814262023217,
+ "persistence_issuers_ge3_invalid": [
+  {
+   "issuer": "BDC",
+   "n": 6,
+   "majority_share": 0.5
+  },
+  {
+   "issuer": "JBTM",
+   "n": 4,
+   "majority_share": 0.5
+  },
+  {
+   "issuer": "MYGN",
+   "n": 3,
+   "majority_share": 1.0
+  },
+  {
+   "issuer": "PNR",
+   "n": 15,
+   "majority_share": 0.6
+  },
+  {
+   "issuer": "TDC",
+   "n": 3,
+   "majority_share": 1.0
+  },
+  {
+   "issuer": "TFX",
+   "n": 11,
+   "majority_share": 1.0
+  },
+  {
+   "issuer": "TRMB",
+   "n": 4,
+   "majority_share": 0.75
+  },
+  {
+   "issuer": "TXT",
+   "n": 3,
+   "majority_share": 1.0
+  }
+ ]
+}
+        rows  invalid_rows  invalid_periods                      reasons  beat_rate_invalid  beat_rate_valid  disagreements_invalid  edge_pts_invalid  edge_pts_valid
+entity                                                                                                                                                               
+PNR       24            15             11.0               continuing_ops                0.4         0.333333                   14.0          0.841346        0.480769
+TDC       22             3              2.0                  scale_check                0.0         0.789474                    3.0          0.480769       -1.041667
+TFX       11            11              3.0               continuing_ops                0.0              NaN                    9.0          0.420673        0.000000
+ONTO      16             1              1.0              quarter_ordinal                0.0         0.466667                    1.0          0.240385        0.000000
+TYL       12             1              1.0                  scale_check                0.0         0.363636                    1.0          0.240385        0.240385
+SWK        3             1              1.0                  scale_check                0.0         0.500000                    1.0          0.240385        0.000000
+JBTM       4             4              2.0   continuing_ops;scale_check                0.5              NaN                    1.0          0.080128        0.000000
+ACN       12             0              0.0                                             NaN         0.416667                    0.0          0.000000        0.060096
+BDC       20             6              4.0  quarter_ordinal;scale_check                0.5         0.857143                    0.0          0.000000        0.000000
+BHE        2             2              1.0                  scale_check                1.0              NaN                    0.0          0.000000        0.000000
+saved fig_issuer
+
+<local-path> SyntaxWarning: invalid escape sequence '\m'
+  ax.set_xlabel("training samples $n$"); ax.set_ylabel("learnability gap $A^*_{\mathrm{phys}}-A_{\mathrm{1NN}}$")
+
+=== qubit model term: qubit_modelterm.py (exit 0, 20s)
+ 'seed': 0, 'test_logloss': 0.48507879950675764, 'oracle_logloss': 0.3867218069299169, 'model_term_KL': 0.09839127351183645, 'model_term_KL_ci': [0.09780033301609299, 0.09882643472079329], 'accuracy': 0.798125, 'max_abs_p_minus_eta': 0.5500427459007575}
+{'n': 1000, 'seed': 1, 'test_logloss': 0.4752938348845379, 'oracle_logloss': 0.385939496825968, 'model_term_KL': 0.08961449523732783, 'model_term_KL_ci': [0.0891629800938337, 0.09007404957655336], 'accuracy': 0.8079, 'max_abs_p_minus_eta': 0.43904078813998826}
+{'n': 1000, 'seed': 2, 'test_logloss': 0.4684770237523976, 'oracle_logloss': 0.38708514280484446, 'model_term_KL': 0.08138723330374037, 'model_term_KL_ci': [0.08093435721176338, 0.08183246360229374], 'accuracy': 0.798085, 'max_abs_p_minus_eta': 0.4067699654519511}
+{'n': 10000, 'seed': 0, 'test_logloss': 0.39904782004883016, 'oracle_logloss': 0.38540271182194424, 'model_term_KL': 0.013950792682121018, 'model_term_KL_ci': [0.013854380963886364, 0.014040089380969598], 'accuracy': 0.81639, 'max_abs_p_minus_eta': 0.1540640115480283}
+{'n': 10000, 'seed': 1, 'test_logloss': 0.3954020806273251, 'oracle_logloss': 0.383023472336526, 'model_term_KL': 0.01216945307855463, 'model_term_KL_ci': [0.012083407602765552, 0.01226448163761605], 'accuracy': 0.81744, 'max_abs_p_minus_eta': 0.15212754370543746}
+{'n': 10000, 'seed': 2, 'test_logloss': 0.40101702527556726, 'oracle_logloss': 0.38604827349967125, 'model_term_KL': 0.015353828171842575, 'model_term_KL_ci': [0.015252119119113913, 0.01545146316646362], 'accuracy': 0.81319, 'max_abs_p_minus_eta': 0.23686137165852866}
+{'n': 100000, 'seed': 0, 'test_logloss': 0.38615099317910995, 'oracle_logloss': 0.38559516821450307, 'model_term_KL': 0.0006590783113026643, 'model_term_KL_ci': [0.0006549914415478132, 0.0006629055526769503], 'accuracy': 0.818865, 'max_abs_p_minus_eta': 0.04719975268664145}
+{'n': 100000, 'seed': 1, 'test_logloss': 0.3862837639871839, 'oracle_logloss': 0.3855390989222679, 'model_term_KL': 0.0007133184950253087, 'model_term_KL_ci': [0.0007082505855144264, 0.0007184875583437049], 'accuracy': 0.81842, 'max_abs_p_minus_eta': 0.04864200591011503}
+{'n': 100000, 'seed': 2, 'test_logloss': 0.38660587741539076, 'oracle_logloss': 0.3858623600062201, 'model_term_KL': 0.0007805268794221685, 'model_term_KL_ci': [0.0007755238775767062, 0.0007867919567980958], 'accuracy': 0.819715, 'max_abs_p_minus_eta': 0.05377350407028325}
+{
+ "1000": {
+  "model_term_KL_mean": 0.08979766735096821,
+  "model_term_KL_max_ci_hi": 0.09882643472079329,
+  "test_logloss_mean": 0.476283219381231,
+  "share_of_H_cond": 0.23245917204341107
+ },
+ "10000": {
+  "model_term_KL_mean": 0.013824691310839408,
+  "model_term_KL_max_ci_hi": 0.01545146316646362,
+  "test_logloss_mean": 0.39848897531724087,
+  "share_of_H_cond": 0.03578797078673578
+ },
+ "100000": {
+  "model_term_KL_mean": 0.0007176412285833806,
+  "model_term_KL_max_ci_hi": 0.0007867919567980958,
+  "test_logloss_mean": 0.38634687819389485,
+  "share_of_H_cond": 0.0018577574534168594
+ }
+}
+
+
+=== SEC XBRL download: fetch_audit_xbrl.py (exit 0, 14s)
+ACM 868857 4219413
+ACN 1467373 4491185
+AMGN 318154 3735515
+CVS 64803 4523266
+EPAM 1352010 2969076
+EVRG 1711269 2092477
+FDS 1013237 3932189
+LQDT 1235468 2817562
+NWN 1733998 2057052
+ONTO 704532 3180268
+PNR 77360 4915302
+SAM 949870 2918072
+SANM 897723 3022830
+SPGI 64040 4420239
+SWK 93556 5185960
+TYL 860731 3109062
+WHR 106640 4171369
+
+
+=== audit cross-check (reported-EPS side): audit_crosscheck.py (exit 0, 2s)
+
+8       10    ACN   annual  13.19  13.57  text_missing                  correct
+9       23   EPAM  quarter   1.75   1.83  text_missing                  correct
+10      22   EPAM  quarter   1.52   1.60  text_missing                  correct
+11      64   SANM  quarter   1.02   1.12  text_missing                  correct
+12      54   ONTO  quarter   1.04   1.19  text_missing                  correct
+13      28   EVRG   annual   3.73   3.93  text_missing                  correct
+14      62    SAM   annual   8.00  10.50  text_missing                  correct
+15      71   SPGI   annual  11.95  12.15  text_missing                  correct
+16      16    CVS   annual   4.95   5.20  text_missing                  correct
+17      49    NWN   annual   2.59   2.79  text_missing                  correct
+18      39    FDS   annual  14.55  15.25  text_missing                  correct
+19       4    ACM   annual   5.00   5.10  text_missing             unverifiable
+20      38    FDS   annual  14.80  15.40  text_missing                  correct
+21      37    FDS   annual  14.80  15.40  text_missing                  correct
+22      30   EVRG   annual   3.73   3.93  text_missing                  correct
+23      81    WHR   annual   5.00   7.00  text_missing                  correct
+24      46   LQDT  quarter   0.21   0.30  text_missing                  correct
+25      80    TYL   annual   6.13   6.28  text_missing                  correct
+26       6    ACN   annual  11.41  11.64  text_missing                  correct
+27      36    FDS   annual  15.10  15.70  text_missing                  correct
+28      41    FDS   annual  14.85  15.35  text_missing                  correct
+29      58    PNR   annual   4.27   4.42  text_missing                    wrong
+30      13    ACN   annual  13.38  13.50  text_missing                  correct
+31      50   ONTO  quarter   0.54   0.69  text_missing                  correct
+32      77    SWK   annual   0.90   2.00  text_missing                  correct
+33      12    ACN   annual  13.25  13.50  text_missing                  correct
+34      60    PNR  quarter   1.07   1.10  text_missing                    wrong
+35      14   AMGN   annual  10.89  12.14  text_missing                  correct
+36      51   ONTO  quarter   0.74   0.94  text_missing                  correct
+37      18    CVS   annual   4.23   4.43  text_missing                  correct
+38      33    FDS   annual  14.55  14.95  text_missing                  correct
+39      40    FDS   annual  14.55  15.25  text_missing                  correct
+{
+ "ai_primary": {
+  "e": 3,
+  "n": 40,
+  "K_U": 12,
+  "bound_plain_pts": -7.140992167101827,
+  "bound_tight_pts": -6.488250652741515
+ },
+ "plus_screen_flagged": {
+  "e": 3,
+  "n": 40,
+  "K_U": 12,
+  "bound_plain_pts": -7.140992167101827,
+  "bound_tight_pts": -6.488250652741515
+ },
+ "plus_screen_and_eps_unchecked": {
+  "e": 5,
+  "n": 40,
+  "K_U": 17,
+  "bound_plain_pts": -9.751958224543081,
+  "bound_tight_pts": -9.099216710182766
+ }
+}
+
+
+=== coverage suite: coverage_suite.py (exit 0, 89s)
+independent {'two_way': np.float64(0.998), 'entity_only': np.float64(0.913), 'time_only': np.float64(0.907)}
+ar1_calendar_rho0.7 {'two_way': np.float64(0.986), 'entity_only': np.float64(0.889), 'time_only': np.float64(0.876)}
+unequal_weights_lognormal_sd1 {'two_way': np.float64(0.995), 'entity_only': np.float64(0.899), 'time_only': np.float64(0.918)}
+missing_30pct_cells {'two_way': np.float64(1.0), 'entity_only': np.float64(0.924), 'time_only': np.float64(0.92)}
+few_time_clusters_T8 {'two_way': np.float64(0.988), 'entity_only': np.float64(0.839), 'time_only': np.float64(0.862)}
+actual_weights_random_errors {'coverage_plain': np.float64(0.99885), 'coverage_tight': np.float64(0.99875), 'mc_se': 0.0002498437011413309, 'K_true': 8}
+actual_weights_errors_on_heaviest {'coverage_plain': np.float64(0.96345), 'coverage_tight': np.float64(0.96345), 'mc_se': 0.0013269155493097512, 'K_true': 25}
+actual_weights_errors_one_issuer {'coverage_plain': np.float64(1.0), 'coverage_tight': np.float64(1.0), 'mc_se': 7.071067811865475e-09, 'K_true': 3}
+unequal_lognormal1.5_errors_on_heaviest {'coverage_plain': np.float64(0.9624), 'coverage_tight': np.float64(0.9624), 'mc_se': 0.0013451066872185262, 'K_true': 25}
+unresolved_counted_wrong_informative {'coverage_plain': np.float64(0.9996), 'coverage_tight': np.float64(0.99955), 'mc_se': 0.0001499662462022622, 'K_true': 8}
+unresolved_excluded_informative {'coverage_plain': np.float64(0.9684), 'coverage_tight': np.float64(0.9581), 'mc_se': 0.0014167637417720719, 'K_true': 15}
+adjudicator_misses_20pct {'coverage_plain': np.float64(0.99305), 'coverage_tight': np.float64(0.99295), 'mc_se': 0.0005916205498459296, 'K_true': 8}
+adjudicator_misses_50pct {'coverage_plain': np.float64(0.92795), 'coverage_tight': np.float64(0.84885), 'mc_se': 0.0025328213270975116, 'K_true': 25}
+exact min coverage 0.9507973754922582
+
