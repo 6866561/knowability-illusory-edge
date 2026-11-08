@@ -291,6 +291,23 @@ def audit_lower_bound(delta_measured, P_D, e, k, alpha=0.05):
     return {"rho_D_upper": rho_u, "delta_lower": delta_measured - 2 * P_D * rho_u}
 
 
+def pigeonhole_ratio_bootstrap(row_code, col_code, num, den, reps=1000, seed=20261108):
+    """Two-way (pigeonhole) bootstrap of a ratio of sums, sum(num)/sum(den), for data cross-classified by two factors
+    (e.g. entity x time block), after Owen (2007). Rows and columns are resampled independently with replacement; an
+    observation in cell (i, j) receives weight (count of row i) x (count of column j). Returns the replicate ratios.
+    Computed on cell sums, so the cost is O(reps x rows x cols) regardless of the number of observations."""
+    r = np.asarray(row_code); c = np.asarray(col_code)
+    R, C = int(r.max()) + 1, int(c.max()) + 1
+    N = np.zeros((R, C)); Dn = np.zeros((R, C))
+    np.add.at(N, (r, c), np.asarray(num, float)); np.add.at(Dn, (r, c), np.asarray(den, float))
+    rng = np.random.default_rng(seed)
+    out = np.empty(reps)
+    for k in range(reps):
+        cr = rng.multinomial(R, np.full(R, 1.0 / R)); cc = rng.multinomial(C, np.full(C, 1.0 / C))
+        out[k] = (cr @ N @ cc) / (cr @ Dn @ cc)
+    return out
+
+
 def prop72(m, pi):
     """Persistent-noise example: measured and true edge of entity model over base-rate model."""
     assert (1 - pi) * m > 0.5

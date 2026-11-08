@@ -86,3 +86,24 @@ def test_beta_binomial_finite_history_accuracy():
     vals = [closed(j) for j in range(0, 30)]
     assert all(x <= y + 1e-12 for x, y in zip(vals, vals[1:]))
     assert vals[-1] < np.mean(np.maximum(p, 1 - p)) + 4e-3
+
+
+def test_pigeonhole_bootstrap_two_way_coverage():
+    """Two-way bootstrap: identity at unit weights, and near-nominal coverage of the mean under row + column effects,
+    where one-way (row-only) resampling undercovers."""
+    import numpy as np
+    from kn.core import pigeonhole_ratio_bootstrap, cluster_bootstrap
+    rng = np.random.default_rng(1)
+    R, C = 30, 30
+    rr, cc = np.meshgrid(np.arange(R), np.arange(C), indexing="ij"); rr, cc = rr.ravel(), cc.ravel()
+    hit2 = hit1 = 0; sims = 120
+    for s in range(sims):
+        a = rng.normal(0, 1, R); b = rng.normal(0, 1, C)
+        x = 5 + a[rr] + b[cc] + rng.normal(0, 1, R * C)
+        bs2 = pigeonhole_ratio_bootstrap(rr, cc, x, np.ones_like(x), reps=300, seed=s)
+        lo, hi = np.percentile(bs2, [2.5, 97.5]); hit2 += lo <= 5 <= hi
+        g = {i: np.where(rr == i)[0] for i in range(R)}
+        bs1 = cluster_bootstrap(g, lambda idx: x[idx].mean(), reps=300, seed=s)
+        lo, hi = np.percentile(bs1, [2.5, 97.5]); hit1 += lo <= 5 <= hi
+    assert hit2 / sims >= 0.88          # two-way: close to nominal (Owen's bootstrap is mildly conservative)
+    assert hit1 / sims < hit2 / sims    # row-only resampling ignores the column effect and undercovers

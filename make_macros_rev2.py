@@ -98,6 +98,9 @@ for k, v in r["time_block"].items():
     t = {"d4_weather": "wx", "d4_weather_nwp": "nwp", "d5_football": "fb", "d6_house": "hs", "d6_president": "pr", "d8_stocks": "st", "d9_quakes": "eq", "d7_earnings": "ed"}[k]
     mac(t + "TBlo", v["LSS_ci_time_block"][0], "{:.4f}" if abs(v["LSS"]) < 0.01 else "{:.3f}"); mac(t + "TBhi", v["LSS_ci_time_block"][1], "{:.4f}" if abs(v["LSS"]) < 0.01 else "{:.3f}")
     mac(t + "TBn", v["n_blocks"], "{:d}")
+    if k in r.get("two_way", {}):
+        _c2 = r["two_way"][k]["LSS_ci_two_way"]; _ff = "{:.4f}" if abs(v["LSS"]) < 0.01 else "{:.3f}"
+        mac(t + "TWlo", _c2[0], _ff); mac(t + "TWhi", _c2[1], _ff)
 
 # ---------------- quantum (validation-selected)
 qn = [("d1_qubit", "Qubit ($\\sigma_\\theta{=}0.3$)"), ("d2_lorenz", "Lorenz-63 ($h{=}1$)"), ("d4_weather", "Rain"), ("d5_football", "Football"),
@@ -159,6 +162,17 @@ for _line in (GEN / "tab_atlas.tex").read_text(encoding="utf-8").splitlines():
     else:
         _ins = "--"
     _cells.insert(6, _ins)
+    # two-way (entity x time block) interval; the kappa_U plug-in diagnostic column (no coverage guarantee) is dropped
+    _tw = r.get("two_way", {})
+    if _name in _tbmap and _tbmap[_name] in _tw:
+        _v2 = _tw[_tbmap[_name]]; _f = "{:.4f}" if abs(_tb[_tbmap[_name]]["LSS"]) < 0.01 else "{:.3f}"
+        _ins2 = "[" + _f.format(_v2["LSS_ci_two_way"][0]) + ", " + _f.format(_v2["LSS_ci_two_way"][1]) + "]"
+    elif _name.startswith("Bad qubit"):
+        _ins2 = "--"
+    else:
+        _ins2 = "--"
+    _cells.insert(7, _ins2)
+    del _cells[11]          # kappa_U diag. column
     _rows.append(" & ".join(_cells))
 (GEN / "tab_atlas_tb.tex").write_text("\n".join(_rows), encoding="utf-8")
 print("tab_atlas_tb written")

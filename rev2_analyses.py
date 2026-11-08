@@ -179,6 +179,34 @@ _bs = core.cluster_bootstrap(_g, lambda idx: 1 - core.log_loss(_y[idx], _pm[idx]
 tb["d7_earnings"] = {"model": "combo", "block": "Q", "n_blocks": len(_g), "LSS": 1 - core.log_loss(_y, _pm, _w) / core.log_loss(_y, _p0, _w),
                      "LSS_ci_time_block": np.percentile(_bs, [2.5, 97.5]).tolist()}
 OUT["time_block"] = tb
+
+# ---------------------------------------------------------------- 6. two-way (entity x time block) pigeonhole bootstrap
+def _ll(yy, pp):
+    pp = np.clip(pp, 1e-6, 1 - 1e-6); return -(yy * np.log(pp) + (1 - yy) * np.log(1 - pp))
+
+
+tw = {}
+for name, (freq, col) in blocks.items():
+    p = RES / f"{name}_preds.parquet"
+    if not p.exists():
+        continue
+    d = pd.read_parquet(p)
+    if col not in d:
+        col = col.replace("n", "") if col != "p_M4bn" else "p_M4b"
+    d = d.dropna(subset=[col, "p_M0"]).reset_index(drop=True)
+    blk = pd.to_datetime(d["t"]).dt.to_period(freq).astype(str)
+    rc, cc = pd.factorize(d["entity"].astype(str))[0], pd.factorize(blk)[0]
+    yy = d["y"].to_numpy().astype(float)
+    bs = core.pigeonhole_ratio_bootstrap(rc, cc, _ll(yy, d[col].to_numpy()), _ll(yy, d["p_M0"].to_numpy()), reps=1000)
+    tw[name] = {"model": col, "block": freq, "n_entities": int(rc.max() + 1), "n_blocks": int(cc.max() + 1),
+                "LSS_ci_two_way": (1 - np.percentile(bs, [97.5, 2.5])).tolist()}
+_d = d7.copy()
+rc, cc = pd.factorize(_d["entity"].astype(str))[0], pd.factorize(pd.to_datetime(_d["decision_time"]).dt.to_period("Q").astype(str))[0]
+_y, _w = _d["y"].to_numpy().astype(float), _d["weight"].to_numpy()
+bs = core.pigeonhole_ratio_bootstrap(rc, cc, _w * _ll(_y, _d["combo"].to_numpy()), _w * _ll(_y, _d["freq"].to_numpy()), reps=1000)
+tw["d7_earnings"] = {"model": "combo", "block": "Q", "n_entities": int(rc.max() + 1), "n_blocks": int(cc.max() + 1),
+                     "LSS_ci_two_way": (1 - np.percentile(bs, [97.5, 2.5])).tolist()}
+OUT["two_way"] = tw
 (RES / "rev2_analyses.json").write_text(json.dumps(OUT, indent=1, default=float))
 print(json.dumps({"audit": OUT["audit"]["scenarios"], "power": round(OUT["power"]["n_required"]), "cohort": {k: v for k, v in OUT["earnings_cohort"].items() if k != "note"},
                   "live": {q: (round(v["A_opt"], 4), [round(x, 4) for x in v["A_opt_ci"]], round(v["e0"], 4), round(v["e1"], 4)) for q, v in lv.items()},
