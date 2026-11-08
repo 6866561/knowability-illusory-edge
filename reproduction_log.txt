@@ -1,9 +1,9 @@
-=== unit tests: -m pytest -q tests/test_core.py tests/test_rev2.py (exit 0, 8s)
+=== unit tests: -m pytest -q tests/test_core.py tests/test_rev2.py (exit 0, 15s)
 ..............                                                           [100%]
-14 passed in 7.00s
+14 passed in 14.07s
 
 
-=== audit bounds, earnings cohort, readout ceilings, time-block and two-way intervals: rev2_analyses.py (exit 0, 114s)
+=== audit bounds, earnings cohort, readout ceilings, time-block and two-way intervals: rev2_analyses.py (exit 0, 133s)
 {
  "audit": {
   "exclude_unverifiable": {
@@ -157,7 +157,7 @@
 }
 
 
-=== issuer-level breakdown: issuer_breakdown.py (exit 0, 3s)
+=== issuer-level breakdown: issuer_breakdown.py (exit 0, 4s)
 valid_rows": 18,
  "top2_edge_invalid_pts": 1.3221153846153848,
  "issuers_invalid_ge2_periods": 9,
@@ -228,7 +228,7 @@ saved fig_issuer
 <local-path> SyntaxWarning: invalid escape sequence '\m'
   ax.set_xlabel("training samples $n$"); ax.set_ylabel("learnability gap $A^*_{\mathrm{phys}}-A_{\mathrm{1NN}}$")
 
-=== qubit model term: qubit_modelterm.py (exit 0, 20s)
+=== qubit model term: qubit_modelterm.py (exit 0, 16s)
  'seed': 0, 'test_logloss': 0.48507879950675764, 'oracle_logloss': 0.3867218069299169, 'model_term_KL': 0.09839127351183645, 'model_term_KL_ci': [0.09780033301609299, 0.09882643472079329], 'accuracy': 0.798125, 'max_abs_p_minus_eta': 0.5500427459007575}
 {'n': 1000, 'seed': 1, 'test_logloss': 0.4752938348845379, 'oracle_logloss': 0.385939496825968, 'model_term_KL': 0.08961449523732783, 'model_term_KL_ci': [0.0891629800938337, 0.09007404957655336], 'accuracy': 0.8079, 'max_abs_p_minus_eta': 0.43904078813998826}
 {'n': 1000, 'seed': 2, 'test_logloss': 0.4684770237523976, 'oracle_logloss': 0.38708514280484446, 'model_term_KL': 0.08138723330374037, 'model_term_KL_ci': [0.08093435721176338, 0.08183246360229374], 'accuracy': 0.798085, 'max_abs_p_minus_eta': 0.4067699654519511}
@@ -260,7 +260,7 @@ saved fig_issuer
 }
 
 
-=== SEC XBRL download: fetch_audit_xbrl.py (exit 0, 14s)
+=== SEC XBRL download: fetch_audit_xbrl.py (exit 0, 13s)
 ACM 868857 4219413
 ACN 1467373 4491185
 AMGN 318154 3735515
@@ -339,7 +339,7 @@ WHR 106640 4171369
 }
 
 
-=== coverage suite: coverage_suite.py (exit 0, 89s)
+=== coverage suite: coverage_suite.py (exit 0, 111s)
 independent {'two_way': np.float64(0.998), 'entity_only': np.float64(0.913), 'time_only': np.float64(0.907)}
 ar1_calendar_rho0.7 {'two_way': np.float64(0.986), 'entity_only': np.float64(0.889), 'time_only': np.float64(0.876)}
 unequal_weights_lognormal_sd1 {'two_way': np.float64(0.995), 'entity_only': np.float64(0.899), 'time_only': np.float64(0.918)}
@@ -354,4 +354,53 @@ unresolved_excluded_informative {'coverage_plain': np.float64(0.9684), 'coverage
 adjudicator_misses_20pct {'coverage_plain': np.float64(0.99305), 'coverage_tight': np.float64(0.99295), 'mc_se': 0.0005916205498459296, 'K_true': 8}
 adjudicator_misses_50pct {'coverage_plain': np.float64(0.92795), 'coverage_tight': np.float64(0.84885), 'mc_se': 0.0025328213270975116, 'K_true': 25}
 exact min coverage 0.9507973754922582
+
+
+=== decomposition checks: decomposition_check.py (exit 0, 4s)
+{
+ "H_cond": {
+  "closed_form": 0.3862943611198906,
+  "quadrature": 0.386294361119769,
+  "abs_diff": 1.2156942119645464e-13
+ },
+ "model_term": {
+  "expected_loss": 0.38958340829418275,
+  "H_plus_KL": 0.3895834082941827,
+  "KL": 0.0032890471744136942,
+  "abs_diff": 5.551115123125783e-17,
+  "monte_carlo_loss": 0.39018889007854307,
+  "monte_carlo_se": 0.0003766306908144137
+ },
+ "epistemic": {
+  "H_Y_given_X_8bins": 0.3924594575495841,
+  "H_Y_given_X_Z": 0.386294361119769,
+  "I_Y_Z_given_X": 0.006165096429815109
+ },
+ "measurement_term": {
+  "agrees_with_forecast": {
+   "measured_minus_true_loss": -0.02553113329253015,
+   "M": -0.025531133292530105,
+   "abs_diff": 4.5102810375396984e-17
+  },
+  "opposes_forecast": {
+   "measured_minus_true_loss": 0.2806953490462722,
+   "M": 0.28069534904627225,
+   "abs_diff": 5.551115123125783e-17
+  }
+ }
+}
+
+
+=== hardware two-way intervals: qdrift_twoway.py (exit 0, 6s)
+primary cz_error_h1 hgb 0.322 qubit [0.27, 0.368] 2w-1d [0.266, 0.377] 2w-7d [0.262, 0.382] 2w-28d [0.25, 0.387] ridge 0.305
+primary cz_error_h14 hgb 0.159 qubit [0.109, 0.201] 2w-1d [0.11, 0.205] 2w-7d [0.093, 0.219] 2w-28d [0.075, 0.238] ridge 0.15
+primary readout_error_h1 hgb 0.305 qubit [0.263, 0.349] 2w-1d [0.258, 0.354] 2w-7d [0.251, 0.36] 2w-28d [0.231, 0.369] ridge 0.31
+primary readout_error_h14 hgb 0.148 qubit [0.113, 0.186] 2w-1d [0.107, 0.191] 2w-7d [0.104, 0.2] 2w-28d [0.087, 0.211] ridge 0.138
+primary sx_error_h1 hgb 0.096 qubit [0.056, 0.139] 2w-1d [0.049, 0.145] 2w-7d [0.05, 0.145] 2w-28d [0.05, 0.149] ridge 0.087
+primary sx_error_h14 hgb 0.015 qubit [-0.014, 0.044] 2w-1d [-0.019, 0.047] 2w-7d [-0.026, 0.052] 2w-28d [-0.035, 0.061] ridge 0.024
+primary T1_h1 hgb 0.01 qubit [-0.015, 0.042] 2w-1d [-0.025, 0.049] 2w-7d [-0.031, 0.054] 2w-28d [-0.055, 0.064] ridge -0.023
+primary T1_h14 hgb -0.075 qubit [-0.096, -0.047] 2w-1d [-0.121, -0.033] 2w-7d [-0.163, -0.011] 2w-28d [-0.225, 0.01] ridge -0.5
+primary T2_h1 hgb 0.044 qubit [0.027, 0.061] 2w-1d [0.022, 0.067] 2w-7d [0.009, 0.078] 2w-28d [-0.012, 0.09] ridge -0.03
+primary T2_h14 hgb -0.01 qubit [-0.025, 0.004] 2w-1d [-0.037, 0.013] 2w-7d [-0.051, 0.022] 2w-28d [-0.073, 0.04] ridge -0.091
+primary taskB 0.324 [0.2767250008715112, 0.37504419489367957] [0.2736630449625127, 0.3702560285883173] [0.27055040205342795, 0.374810757471567]
 
