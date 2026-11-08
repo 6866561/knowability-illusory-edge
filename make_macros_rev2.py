@@ -162,3 +162,21 @@ for _line in (GEN / "tab_atlas.tex").read_text(encoding="utf-8").splitlines():
     _rows.append(" & ".join(_cells))
 (GEN / "tab_atlas_tb.tex").write_text("\n".join(_rows), encoding="utf-8")
 print("tab_atlas_tb written")
+
+# independent audit cross-checks (SEC XBRL reported EPS; rule-based guidance screen) -> appended to macros_rev2.tex
+_xp = RES / "audit_crosscheck.json"
+if _xp.exists():
+    _x = json.loads(_xp.read_text()); _s = _x["summary"]; _b = _x["bound_sensitivity"]
+    _X = {"xcN": _s["n"], "xcEpsMatch": _s["eps_status"].get("match", 0), "xcEpsUnchk": _s["n"] - _s["eps_status"].get("match", 0),
+          "xcGuidClean": _s["guid_status"].get("range_found_gaap_diluted", 0),
+          "xcGuidFlagAI": _s["guid_by_ai_verdict"].get("correct|range_found_flagged", 0),
+          "xcWrongFlagged": _s["guid_by_ai_verdict"].get("wrong|range_found_flagged", 0),
+          "xcEscreen": _b["plus_screen_flagged"]["e"], "xcKscreen": _b["plus_screen_flagged"]["K_U"],
+          "xcEall": _b["plus_screen_and_eps_unchecked"]["e"], "xcKall": _b["plus_screen_and_eps_unchecked"]["K_U"]}
+    _lines = ["\\newcommand{\\" + k + "}{" + str(v) + "}" for k, v in _X.items()]
+    for k, key in [("xcBscreenPlain", ("plus_screen_flagged", "bound_plain_pts")), ("xcBscreenTight", ("plus_screen_flagged", "bound_tight_pts")),
+                   ("xcBallPlain", ("plus_screen_and_eps_unchecked", "bound_plain_pts")), ("xcBallTight", ("plus_screen_and_eps_unchecked", "bound_tight_pts"))]:
+        _lines.append("\\newcommand{\\" + k + "}{" + f"{_b[key[0]][key[1]]:+.2f}" + "}")
+    with open(GEN / "macros_rev2.tex", "a", encoding="utf-8") as _fh:
+        _fh.write("\n".join(_lines) + "\n")
+    print("xc macros", len(_lines))
