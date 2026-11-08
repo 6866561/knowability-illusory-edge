@@ -1,0 +1,39 @@
+\section{Coverage Studies}\label{app:coverage}
+\emph{Two-way intervals for achieved skill.} We simulated binary outcomes on a $60\times60$ entity-by-block panel (three observations per cell) from a logistic model with an observed feature and unobserved entity and calendar shocks; the scored forecast ignores the shocks and the baseline is a constant base rate, so the target is the population LSS, a ratio of expected log losses, computed from $8\times10^6$ draws. Scenarios: independent shocks; first-order autoregressive calendar shocks ($\rho=0.7$); entity weights drawn from a log-normal distribution with unit log-scale; $30\%$ of cells missing at random; and eight time clusters ($60\times8$ cells, 20 observations per cell). For each of $\covSims$ panels per scenario we formed $95\%$ percentile intervals from $\covReps$ replicates of the two-way, entity-only and time-only bootstraps (\texttt{coverage\_suite.py}). Table~\ref{tab:cov} reports coverage; Monte Carlo standard errors are at most $\covSEall$ percentage points. Two-way intervals covered the target in at least $\covTwMin\%$ of panels in every scenario and were $\covWlo$--$\covWhi$ times as wide as entity-only intervals; one-way intervals covered $\covOneMin$--$\covOneMax\%$. The two-way intervals are therefore conservative rather than exact. These scenarios do not include serial dependence within entities beyond the calendar shock, or trends.
+
+\emph{Disagreement-audit bound.} The coverage of the hypergeometric step is exact: for $N_D=82$ and $n=40$, the probability that the true number of wrong rows is at most $K_U$ is at least $\covExactMin\%$ for every possible number of wrong rows (computed from the hypergeometric distribution, not simulated). The implemented weighted bound, plain and tightened, was checked by Monte Carlo ($\covDrawsB$ draws per case, true error counts $3$, $8$, $15$ and $25$, worst case reported; all errors adverse to the measured edge). Correct adjudication is assumed except in the last two rows of Table~\ref{tab:cov}.
+
+\begin{table}[!t]
+\caption{Coverage (\%) of Interval Procedures at Nominal $95\%$}
+\label{tab:cov}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\multicolumn{4}{@{}l}{\emph{Achieved skill (LSS ratio)}}\\
+Scenario & two-way & entity only & time only\\
+\midrule
+Independent shocks & $\covIndTw$ & $\covIndEn$ & $\covIndTi$\\
+AR(1) calendar shocks & $\covArTw$ & $\covArEn$ & $\covArTi$\\
+Unequal weights & $\covUwTw$ & $\covUwEn$ & $\covUwTi$\\
+30\% cells missing & $\covMisTw$ & $\covMisEn$ & $\covMisTi$\\
+Eight time clusters & $\covFewTw$ & $\covFewEn$ & $\covFewTi$\\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Audit lower bound}}\\
+Scenario & plain & tightened & \\
+\midrule
+Audit weights, random errors & $\AuRandP$ & $\AuRandT$ & \\
+Audit weights, errors on heaviest rows & $\AuHeavyP$ & $\AuHeavyT$ & \\
+Audit weights, errors in one issuer & $\AuIssP$ & $\AuIssT$ & \\
+Log-normal weights, errors on heaviest & $\AuUneqP$ & $\AuUneqT$ & \\
+Unresolved rows counted wrong & $\AuUnresWP$ & $\AuUnresWT$ & \\
+Unresolved rows excluded (informative) & $\AuUnresXP$ & $\AuUnresXT$ & \\
+Adjudicator misses 20\% of errors & $\AuMissTwentyP$ & $\AuMissTwentyT$ & \\
+Adjudicator misses 50\% of errors & $\AuMissFiftyP$ & $\AuMissFiftyT$ & \\
+\bottomrule
+\end{tabular}
+\vspace{2pt}
+
+\parbox{\columnwidth}{\scriptsize Monte Carlo standard errors at most $\covSEall$ points (skill) and $0.3$ points (audit). Hypergeometric step alone: exact minimum coverage $\covExactMin\%$.}
+\end{table}
