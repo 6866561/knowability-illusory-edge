@@ -1,0 +1,391 @@
+\documentclass[journal]{IEEEtran}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amsthm}
+\usepackage{newtxtext,newtxmath}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{cite}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+
+\input{gen/macros.tex}
+\input{gen/macros_extra.tex}
+\input{gen/macros_ext.tex}
+\input{gen/macros_rev2.tex}
+\input{gen/macros_know.tex}
+\input{gen/macros_default.tex}
+
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\LSS}{\mathrm{LSS}}
+\newcommand{\KL}{\mathrm{KL}}
+\newcommand{\ind}{\mathbf{1}}
+\newcommand{\Hb}{H_{\mathrm b}}
+
+\begin{document}
+
+\title{How Much of the Future Is Knowable? Information Ceilings, Chaos, Label Errors and Quantum Resources}
+
+\author{Johan~Abraham%
+\thanks{J. Abraham is an independent researcher. Code, archived predictions, the preregistration and derived results are identified by an exact commit; a public deposit has not yet been made (Appendix~\ref{app:repro}). A companion paper~\cite{abraham2026illusory} develops the label-error results in Section~\ref{sec:res-self} in detail.}}
+
+\markboth{Preprint, November 2026}{Abraham: How Much of the Future Is Knowable?}
+
+\maketitle
+
+\begin{abstract}
+Whether mathematics can predict the future has no single answer: it depends on the event, on the information available and on what counts as success. We treat knowability as a measurable, information-relative quantity, the Bayes ceiling of a stated information set, and split the expected loss of any forecast exactly into four parts: ontic randomness, missing information, model error and measurement error in the labels. Each part is examined with its own evidence. For a qubit the ceiling $\qAexact$ does not improve with more precise knowledge, and a live IBM processor reaches $\roA$. In Lorenz-63 the ensemble ceiling $\kLTinyEight$ Lyapunov times ahead rises from $\kLzOneEight$ to $\kLzTinyEight$ as observation noise falls from $1$ to $10^{-4}$, while the data a nearest-neighbour learner needs grow steeply with the horizon at learner-dependent rates. In nine real forecasting tasks, achieved skill over point-in-time base rates ranges from $\nwpNestBLSS$ for rain with weather-model input to indistinguishable from zero for next-day stock direction. Label errors that persist within entities manufacture edge that time-ordered validation cannot detect; in an earnings-guidance model the apparent advantage sat in evaluation rows later found invalid ($\ecRemEdge$ points) and no positive edge survives an audit. Quantum computation cannot raise a ceiling set by classical information, and simulated quantum classifiers showed no detectable advantage in eight domains; quantum resources change predictability only by changing information, as entanglement does in the CHSH game. Quantum hardware is itself partly forecastable: next-calibration readout errors are, coherence times at most weakly.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Predictability, Bayes error, information theory, chaos, forecast verification, label noise, quantum information, philosophy of prediction.
+\end{IEEEkeywords}
+
+\section{Introduction}
+\IEEEPARstart{A}{} forecasting model that is right more often than a coin invites a large conclusion: that mathematics can, at least partly, foresee events. The conclusion does not follow. A model that predicts ``no rain'' every day in a dry city beats a coin without knowing anything about tomorrow; a model that scores well against mislabelled outcomes may have learned the mislabelling; and a model that cannot beat the base rate may still be facing an outcome that is predictable from information it was not given. Whether, and how much, the future can be known is a question about three things at once: the event, the information available about it at the time of the forecast, and the reference against which success is judged.
+
+This paper treats that question as a measurement problem. The quantity we measure is the \emph{Bayes ceiling} of an information set: the best accuracy, or the smallest expected loss, that any decision rule using that information can achieve. The ceiling is not a property of an event alone; the same election is barely predictable from last year's result and almost certain from tomorrow's ballots. Asking ``how much of the future is knowable'' therefore means asking how much a given body of information can remove, where the remainder comes from, and how far real forecasts fall short of the ceiling and why.
+
+The question has a long history in philosophy and physics, and those traditions disagree about where the limits lie. Laplace located them in human ignorance~\cite{laplace1814essai}; Poincar\'e and Lorenz showed that ignorance grows with time in chaotic systems~\cite{poincare1908science,lorenz1963deterministic}; quantum theory places a limit in nature itself~\cite{bell1964einstein}; Hume questioned whether past regularities license any forecast~\cite{hume1748enquiry}; and studies of forecasters found that people routinely overstate what they know~\cite{kahneman1973psychology,meehl1954clinical,tetlock2015superforecasting}. We organise these perspectives around one exact identity (Proposition~\ref{prop:anat}): the expected log loss of any forecast is the sum of an \emph{ontic} term (randomness that no information about the present removes), an \emph{epistemic} term (information that exists but is not used), a \emph{model} term (the forecast's distance from the best use of its information) and, when performance is measured, a \emph{measurement} term (errors in the recorded outcomes). Each term is then studied where it can be isolated: a qubit for the ontic term, chaotic flows for the epistemic and model terms, nine real forecasting tasks for informational limits, and a production earnings model for measurement. Quantum computing enters twice, as a test of whether more computation can raise a ceiling and as a resource that changes the information itself.
+
+\subsection{Contributions and their status}
+Each item is marked as established (E), synthesis (S), new proposition (N) or new empirical finding (F).
+\begin{enumerate}
+\item (S) A four-term decomposition of forecast loss that maps the classical perspectives on predictability onto measurable quantities (Section~\ref{sec:framework}); the components are standard (Theil's uncertainty coefficient~\cite{theil1970estimation}, log-loss decompositions~\cite{weijs2010kl,roulston2002evaluating}), the organisation is ours.
+\item (F) A direct comparison of ontic and epistemic limits on the same scale: the qubit ceiling saturates as knowledge sharpens, the chaotic ceiling approaches one, and a live IBM processor sits just below the qubit ceiling (Section~\ref{sec:res-demon}).
+\item (F, exploratory) Learnability--horizon curves for two nearest-neighbour learners in five chaotic systems, with seeds, floors and crossing classification (Section~\ref{sec:res-chaos}).
+\item (F) Achieved skill relative to point-in-time base rates in nine forecasting tasks, with entity and time-block uncertainty (Section~\ref{sec:res-atlas}).
+\item (N) An inflation identity and sign-reversal construction for entity-persistent label errors, conditions under which time-ordered validation cannot detect them, and a disagreement audit with a finite-population guarantee (Section~\ref{sec:res-self}; detailed in~\cite{abraham2026illusory}).
+\item (E/F) The classical-input ceiling for quantum models (a data-processing corollary), a validation-selected comparison of quantum and classical classifiers in eight domains, a live CHSH experiment, a reanalysis of a loophole-free Bell test, and forecasts of IBM processor calibrations (Sections~\ref{sec:res-qc}--\ref{sec:res-drift}).
+\end{enumerate}
+
+\section{Perspectives on the Knowability of the Future}\label{sec:perspectives}
+Each perspective below is reduced to a question the data can address; Table~\ref{tab:persp} lists the questions, where they are tested and what was found.
+
+\emph{Determinism and Laplace's demon.} Laplace imagined an intellect that knew the positions and forces of all things and for which ``nothing would be uncertain''~\cite{laplace1814essai}. In the terms of Proposition~\ref{prop:anat}, determinism says the ontic term is zero and every limit is epistemic. The testable consequence is that the ceiling should approach one as knowledge of the present improves.
+
+\emph{Sensitive dependence.} Poincar\'e noted that small differences in initial conditions can produce very large ones in outcomes~\cite{poincare1908science}, and Lorenz turned the observation into a finite predictability horizon for weather~\cite{lorenz1963deterministic,lorenz1969predictability}. Determinism survives, but the precision needed for a fixed horizon grows exponentially, at a rate set by the largest Lyapunov exponent $\lambda$. Two questions follow: how precision trades against horizon, and how much \emph{data} a learner needs to approach the ceiling as the horizon grows.
+
+\emph{Ontic randomness.} Quantum measurement outcomes are, according to quantum theory, not determined by the preparation; Bell showed that no local hidden-variable theory reproduces the theory's correlations~\cite{bell1964einstein}, and loophole-free tests confirm the violation~\cite{hensen2015loophole,hensen2016second}. If this is right, the ontic term is positive and the ceiling stays below one however precisely the preparation is known.
+
+\emph{Induction and stationarity.} Hume argued that no amount of past regularity entails a future one~\cite{hume1748enquiry}. Statistically, every forecast assumes that the relation learned from the past persists. The question is not whether induction is justified in general but how far forecasts evaluated strictly forward in time, on data they never saw, retain the skill they show in sample.
+
+\emph{Falsifiability.} Popper required scientific claims to state what would refute them~\cite{popper1959logic}. A claim that the future is knowable to a stated degree can be put in that form: predicted skill ranges, fixed before the data are seen, can fail. We preregistered six hypotheses with failure conditions and report the outcome of each.
+
+\emph{Base rates and human judgement.} People neglect base rates when they predict~\cite{kahneman1973psychology}; simple statistical rules match or beat expert judgement in many fields~\cite{meehl1954clinical}; and trained forecasters can be calibrated but rarely see far ahead~\cite{tetlock2015superforecasting}. The quantitative counterpart is the gap between raw accuracy and skill over the base rate.
+
+\emph{Reflexive systems.} In markets, a forecast that is widely acted on changes the price it forecasts. Efficient-market theory predicts little exploitable predictability from public information~\cite{fama1970efficient}, though not none, since information is costly to acquire~\cite{grossman1980impossibility}. The question is whether next-day direction is forecastable from public price history at all.
+
+\emph{Self-deception in measurement.} A forecast's record is only as good as the outcomes it is scored on. Leakage and label errors can make an edge appear where none exists~\cite{kapoor2023leakage,northcutt2021pervasive}. Here the question is how large the measurement term can be, whether standard validation catches it, and how to bound it cheaply.
+
+\emph{Information versus computation.} If the ceiling is set by information, more computation can only bring a forecast closer to it. Quantum computers are often presented as a route to new predictive power; data processing, with Holevo's bound for the quantum step~\cite{holevo1973bounds}, implies that on classical inputs they cannot exceed the classical Bayes ceiling. The open question is empirical: whether, below the ceiling, quantum models fit real forecasting data better.
+
+\emph{Quantum side information.} What quantum resources can change is the information itself. A forecaster holding a system entangled with the one being measured can predict outcomes that no classical record of the past allows~\cite{berta2010uncertainty}; the CHSH game makes the gain operational~\cite{clauser1969proposed,tsirelson1980quantum}. The question is how much of that gain survives on real hardware and in a loophole-free experiment.
+
+\begin{table*}[!t]
+\caption{Perspectives on Predictability, the Questions They Pose and What Was Found}
+\label{tab:persp}
+\centering
+\footnotesize
+\renewcommand{\arraystretch}{1.12}
+\begin{tabular}{@{}p{0.15\textwidth}p{0.27\textwidth}p{0.08\textwidth}p{0.43\textwidth}@{}}
+\toprule
+Perspective & Question & Where & Finding\\
+\midrule
+Laplace's demon & Does the ceiling approach one as knowledge of the present improves? & \ref{sec:res-demon} & Yes for Lorenz-63 ($\kLzOneEight\to\kLzTinyEight$ at $\kLTinyEight$ Lyapunov times as noise falls from $1$ to $10^{-4}$); no for the qubit (saturates at $\qAexact$).\\
+Sensitive dependence & How fast do precision and data requirements grow with horizon? & \ref{sec:res-demon}, \ref{sec:res-chaos} & Precision buys horizon roughly logarithmically; data needs grow steeply with horizon at rates that depend on the learner ($\LorGonenn$ vs $\LorGknn$ per Lyapunov time for Lorenz-63).\\
+Ontic randomness & Is there a floor that no information about the present removes? & \ref{sec:res-demon}, \ref{sec:res-side} & Qubit ceiling $\qAexact$ (knowable fraction $\qKexact$); live processor $\roA$; loophole-free Bell data consistent with no local completion.\\
+Induction & Does skill survive strictly forward evaluation? & \ref{sec:res-atlas} & Positive forward skill in eight of nine tasks; stock skill indistinguishable from zero under time-block resampling.\\
+Falsifiability & Do preregistered predictions hold? & \ref{sec:res-prereg} & Ranking held ($\rho=\preRho$); only $\preHits$ of $\preN$ point intervals contained the result; one hypothesis component failed.\\
+Base rates & Is high accuracy high skill? & \ref{sec:res-atlas} & No: House seats are called correctly $\hsAcc$ of the time but the base rate already gives $\hsAccZero$.\\
+Reflexive systems & Is next-day market direction forecastable from price history? & \ref{sec:res-atlas} & Skill $\stLSS$, interval including zero.\\
+Self-deception & How large can measurement error make an edge? & \ref{sec:res-self} & Removed mislabelled rows carried $\ecRemEdge$ points; no positive edge can be certified after audit.\\
+Computation & Do quantum models fit classical data better? & \ref{sec:res-qc} & No significant advantage in $\qrevN$ domains (smallest Holm $p=\qrevMinHolm$).\\
+Side information & Does entanglement change what is predictable in practice? & \ref{sec:res-side} & CHSH win rate $\liveChsh$ on hardware and $\bellW$ in a loophole-free test (heralded convention), against $0.75$ for classical strategies.\\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\section{Related Work}\label{sec:related}
+\emph{Limits of predictability.} Entropy-rate bounds on predictability were estimated for human mobility~\cite{song2010limits} and debated for their estimators~\cite{xu2019predictability}; limits for social outcomes were examined through large prediction challenges and simulations~\cite{salganik2020measuring,martin2016exploring,hofman2017prediction}. Weather predictability was framed by Lorenz~\cite{lorenz1969predictability}, quantified for midlatitude weather~\cite{zhang2019predictability}, and its practical progress reviewed in~\cite{bauer2015quiet}. These studies address one domain or one estimator; we compare domains, controls and quantum systems under one protocol.
+
+\emph{Scoring and information.} Proper scoring rules~\cite{gneiting2007strictly,brier1950verification} and their information-theoretic decompositions~\cite{weijs2010kl,roulston2002evaluating} underlie the skill measures; the knowable fraction is Theil's uncertainty coefficient~\cite{theil1970estimation}. Nearest-neighbour error bounds~\cite{cover1967nearest,hellman1970probability} are used only as diagnostics.
+
+\emph{Label errors and leakage.} Instance-dependent label noise is surveyed in~\cite{frenay2014survey,song2023learning}; errors in benchmark test sets change model rankings~\cite{northcutt2021pervasive}; leakage undermines machine-learning-based science~\cite{kapoor2023leakage}.
+
+\emph{Quantum machine learning and quantum information.} Rigorous advantages exist for constructed problems~\cite{liu2021rigorous} and in sample complexity for some tasks~\cite{huang2021information}; careful benchmarking finds little advantage on standard data~\cite{bowles2024better}. The operational meaning of conditional min-entropy~\cite{konig2009operational}, entropic uncertainty with quantum memory~\cite{berta2010uncertainty} and the drift of superconducting qubits~\cite{klimov2018fluctuations,burnett2019decoherence,carroll2022dynamics,proctor2020detecting} provide the context for the quantum sections.
+
+\section{A Framework for Knowability}\label{sec:framework}
+Formal definitions and proofs are in Appendix~\ref{app:math}.
+
+\emph{Information sets and ceilings.} A forecasting task specifies an evaluation distribution $P$ of a test example $(X,Y)$, where $X$ collects everything available at the decision time and $Y\in\{0,1\}$ with $0<P(Y=1)<1$. The Bayes ceiling of the information set $\F=\sigma(X)$ is
+\begin{equation}
+A^*(\F)=\E\max\{\eta(X),1-\eta(X)\},\quad \eta(x)=P(Y=1\mid X=x).
+\end{equation}
+No decision rule using only $X$, deterministic or randomised, exceeds it (Lemma~\ref{lem:app1}). The ceiling belongs to the information set and the distribution, not to the event: enlarging $\F$ can only raise it.
+
+\emph{Knowable fraction.} The information-theoretic counterpart is $\kappa(\F)=I(Y;X)/H(Y)\in[0,1]$, the share of the outcome's entropy that the information removes~\cite{theil1970estimation}. It equals one for a determined outcome and zero for one independent of the information.
+
+\emph{Learnability.} A ceiling says what is possible with unlimited data. For a named learning algorithm $\mathcal A$ trained on $n$ examples, $A_n(\mathcal A)=\E_{S_n}\Pr\{\mathcal A(S_n)(X)=Y\}$ and the gap is $G_n(\mathcal A)=A^*(\F)-A_n(\mathcal A)$. Finite-sample statements concern specific algorithms; we make no claim about an optimal learner.
+
+\emph{Anatomy of unpredictability.} Let $\F_\infty\supseteq\F$ be a larger information set, generated by $X$ together with further variables $Z$; in principle $\F_\infty$ can contain everything about the present state of the world that physics allows to be known.
+
+\begin{proposition}[Four-term decomposition]\label{prop:anat}
+For a forecast $\hat p$ that uses only $X$ (given its training data), the expected log loss against the true outcome is
+\begin{multline}\label{eq:anat}
+\E\,\ell(\hat p,Y)=\underbrace{H(Y\mid\F_\infty)}_{\text{ontic}}+\underbrace{I(Y;Z\mid X)}_{\text{epistemic}}\\
++\underbrace{\E\,\KL(\eta\Vert\hat p)}_{\text{model}}.
+\end{multline}
+Scored against recorded labels $\tilde Y$, the expected measured loss is $H(\tilde Y\mid\F)+\E\,\KL(\tilde\eta\Vert\hat p)$ with $\tilde\eta=P(\tilde Y=1\mid\F)$; its difference from~\eqref{eq:anat} is the measurement term.
+\end{proposition}
+The proof is two lines (Proposition~\ref{prop:appanat}). Each term answers to a perspective of Section~\ref{sec:perspectives}. Determinism asserts that the ontic term vanishes when $\F_\infty$ is the exact present state; quantum theory asserts that it does not. Sensitive dependence makes the epistemic term grow with the horizon for fixed measurement precision. The model term is what learning theory studies and what more data or computation can reduce; quantum models act only here. The measurement term is what self-deception inflates. Which part of a loss counts as ontic depends on what $\F_\infty$ may contain; for quantum outcomes it is irreducible for any local hidden-variable completion, a statement Bell tests support, though not for every interpretation of the theory.
+
+\emph{Achieved skill.} Real forecasts are compared with a point-in-time base-rate forecast $p_0$ through the empirical log-loss skill $\widehat{\LSS}=1-\overline{\ell}(\hat p)/\overline{\ell}(p_0)$, a ratio of test-set averages that converges to the population ratio of expected losses,
+\begin{equation}\label{eq:lss}
+\LSS=1-\frac{H(Y\mid X)+\E\,\KL(\eta\Vert\hat p)}{H(Y\mid\F_0)+\E\,\KL(\eta_0\Vert p_0)},
+\end{equation}
+although its finite-sample expectation generally differs from that ratio. Achieved skill thus mixes the information gained over the base rate with the model terms of both forecasts. A small LSS is not evidence of a small ceiling, and an achieved score improvement from adding a block of inputs is not a conditional mutual information; it can be negative.
+
+\emph{Closed forms.} For a qubit prepared as $R_y(\theta)\lvert0\rangle$ with $\theta\sim U(0,\pi)$ known exactly, $A^*=\tfrac12+\tfrac1\pi$ and $\kappa=1/\ln2-1$; with readout errors the ceiling has the closed form of Proposition~\ref{prop:appqubit}. For exchangeable entities with Beta-distributed rates, the finite-history Bayes accuracy has the closed form of Proposition~\ref{prop:appbeta}. On a classical input, conditionally on the training data, any quantum model is a randomised function of that input and cannot exceed its Bayes ceiling (Proposition~\ref{prop:appqc}).
+
+\section{Experimental Design}\label{sec:design}
+\emph{Controls.} The ontic control is the qubit above, with the preparation angle observed exactly or with Gaussian noise $\sigma_\theta$. The epistemic controls are chaotic flows: Lorenz-63 with observation noise $\sigma_o\in\{10^{-4},\ldots,1\}$ and horizons up to eight time units, with a 400-particle ensemble reference, and, for learnability, Lorenz-63, R\"ossler and Lorenz-96 with five, six and eight variables (Section~\ref{sec:res-chaos}).
+
+\emph{Real tasks.} Measurable rain at 61 stations (with a numerical-weather-prediction, NWP, benchmark over 17 months), football home wins (with closing odds), contested U.S.\ House seats and presidential state outcomes, earnings guidance, next-day direction of large U.S.\ stocks and funds, weekly earthquake occurrence in $2^\circ$ cells, and out-of-tolerance events in IBM processor calibrations.
+
+\emph{Protocol.} Every real task is evaluated walk-forward and point in time: a row is scored only by models fitted on labels available before its decision time, and all preprocessing is fitted on training data only. Models are the point-in-time base rate, an empirical-Bayes entity model~\cite{robbins1956empirical,efron1975data}, $L_2$ logistic regression, gradient boosting and nested variants that take the base-rate forecast as input. A feature-and-timestamp specification with a leakage audit is part of the reproducibility package; no leakage was demonstrated, and unresolved risks are listed in Section~\ref{sec:threats}.
+
+\emph{Inference.} Intervals resample entities and, where shocks are shared across entities, contiguous time blocks (calendar month, election year or quarter). Quantum and classical models are selected within each family on a held-out validation split and tested once; comparisons use entity and month-block bootstraps, a one-sided Diebold--Mariano test~\cite{diebold1995comparing}, and Holm's correction~\cite{holm1979simple} over the eight domains applied to the larger of the two bootstrap $p$-values.
+
+\emph{Preregistration.} Hypotheses H1--H6 with failure conditions, primary models and predicted skill ranges were fixed in a document whose SHA-256 hash was committed to a local repository before the new real-task data were downloaded. The hash identifies the content; the commit time is not independently verifiable. Analyses added later are labelled exploratory.
+
+\section{Results}\label{sec:results}
+
+\subsection{Ontic and epistemic limits: the demon's test}\label{sec:res-demon}
+Fig.~\ref{fig:demon} puts the two kinds of limit on one scale. In Lorenz-63, a deterministic system, the ensemble ceiling at a fixed horizon rises towards one as observation noise falls: at $\kLTinyEight$ Lyapunov times it is $\kLzOneEight$ with $\sigma_o=1$, no better than a coin, and $\kLzTinyEight$ with $\sigma_o=10^{-4}$; at $\kLFour$ Lyapunov times it rises from $\kLzOneFour$ to $\kLzTinyFour$. Each tenfold gain in precision extends the horizon at which a given accuracy holds by a roughly constant amount (Fig.~\ref{fig:demon}a), as expected when errors grow like $e^{\lambda t}$ with $\lambda=\kLam$. Laplace's claim holds here in the form chaos allows: perfect knowledge would give perfect prediction, and every finite precision gives a finite horizon.
+
+The qubit behaves differently. With the preparation angle known to within $\sigma_\theta=0.1$ radians the ceiling is $\kQsigTenth$, and with exact knowledge it is $\qAexact$; it never approaches one (Fig.~\ref{fig:demon}b). The remaining share $1-\kappa$ of the outcome's entropy, with $\kappa=\qKexact$, is not removed by any knowledge of the preparation, which is the ontic term of Proposition~\ref{prop:anat}. On IBM's ibm\_kingston processor, the measured response of two qubits implies ceilings of $\roB$ ($\roBlo$--$\roBhi$) and $\roA$ ($\roAlo$--$\roAhi$), slightly below the ideal because of readout errors ($e_0=\roBez$, $e_1=\roBeo$ and $e_0=\roAez$, $e_1=\roAeo$). Depolarizing noise lowers the ceiling further ($\kDepTwo$ at strength $0.2$). Hardware noise only lowers a quantum ceiling; nothing raises it.
+
+On the qubit, a gradient-boosting learner reached $\qEoneHundredK$ (standard error $\qSE$) with $10^5$ examples, within sampling error of the exact ceiling, so the model term can be driven to zero where the information is simple. Table~\ref{tab:controls} gives the reference values; the nearest-neighbour plug-in diagnostics in the table are asymptotic and fell below the ensemble reference in $\chFailN$ of 44 chaos settings, so they are not bounds.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{figs/fig_demon.pdf}
+\caption{Ontic and epistemic limits. (a)~Lorenz-63: accuracy of the 400-particle ensemble reference against horizon in Lyapunov times, for five levels of observation noise $\sigma_o$; dashed: the exact qubit ceiling $\tfrac12+\tfrac1\pi$, which does not depend on horizon. (b)~Ceiling against observation noise: Lorenz-63 at three horizons approaches one as noise falls; the qubit ceiling with angle noise $\sigma_\theta$ saturates at $\tfrac12+\tfrac1\pi$ (dashed); stars: live ibm\_kingston qubits, whose ceilings are lowered by readout error. Noise units differ between systems (state units for Lorenz-63, radians for the qubit).}
+\label{fig:demon}
+\end{figure*}
+
+\begin{table}[!t]
+\caption{Controls: Reference Values and Plug-in Diagnostics}
+\label{tab:controls}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.2pt}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Setting & $A^*$ ref. & $A_{\rm learn}$ & CH diag. & $\kappa$ ref. & LSS & $\kappa_U$ diag.\\
+\midrule
+\csname @@input\endcsname gen/tab_controls.tex
+\bottomrule
+\end{tabular}
+\vspace{2pt}
+
+\parbox{\columnwidth}{\scriptsize Reference: exact (qubit) or 400-particle ensemble estimate (Lorenz). CH and $\kappa_U$: asymptotic plug-in diagnostics from finite-sample 1-NN errors, not bounds.}
+\end{table}
+
+\subsection{The cost of horizon: learning chaotic futures}\label{sec:res-chaos}
+A ceiling assumes the forecaster knows the dynamics. A forecaster who must learn them from data faces the model term, and in chaotic systems it grows with the horizon. For five systems we drew three independent datasets each and measured, for $n$ from $10^3$ to $10^6$, the accuracy gap between an ensemble reference and two learners, 1-NN and $k$-NN with $k=\lceil\sqrt n\rceil$, for the sign of the first coordinate $0.5$ to $3$ Lyapunov times ahead (Fig.~\ref{fig:law3}, Table~\ref{tab:law3}). Observations carry noise $10^{-4}$ times each coordinate's standard deviation. The reference is the fraction of 500 particles, drawn around the observation and integrated forward, that satisfy the target; for Lorenz-63 it agreed with an importance-sampled posterior over $2\times10^7$ invariant-measure samples in at least $\pvAgreeMin$ of decisions at larger noise, and was stable to particle number and step size at the study's noise. Particle number and step size check numerical stability within this approximation, not the posterior assumption, and the tiny-noise regime and the other systems were not validated directly, so all results are gaps to the ensemble reference. The 1-NN learner is not consistent; computed from the same approximate posterior, its asymptotic excess error $\E[r(1-2r)]$ is at most $\floorMaxAll$, far below the tolerance of $0.05$, so the crossings are attainable conditional on the reference model.
+
+The sample size $n^*$ at which the gap reaches $0.05$ grows steeply with the horizon. For Lorenz-63 the growth is close to exponential (mean $R^2$ of an exponential fit $\LorRexponenn$ against $\LorRpowonenn$ for a power law in the horizon), at $\gamma_L=\LorGonenn\pm\LorGsdonenn$ per Lyapunov time for 1-NN and $\LorGknn\pm\LorGsdknn$ for $k$-NN (mean $\pm$ s.d.\ over three seeds, a descriptive spread rather than a full interval); for R\"ossler the rates are $\RosGonenn\pm\RosGsdonenn$ and $\RosGknn\pm\RosGsdknn$, and exponential and power-law forms fit equally well. The rates depend on the learner and on the tolerance (for Lorenz-63 with 1-NN, $\LorGonennTwo$ at tolerance $0.02$ and $\LorGonennTen$ at $0.10$). An earlier single-seed analysis had found 1-NN rates close to the correlation dimension $D_2$; that coincidence is specific to one learner and tolerance and is not a law. In Lorenz-96 with five to eight variables, too few crossings fall within $10^6$ samples to identify a rate.
+
+The result sharpens Lorenz's horizon in a different direction. Precision buys horizon slowly (Fig.~\ref{fig:demon}), and data buy it slowly too: each additional Lyapunov time multiplied the data needed by roughly $e^{\gamma_L}$, about $\mathrm{e}^{2}$ to $\mathrm{e}^{3}$ for these learners, before reaching a fixed distance from the reference. Even when the future is determined and the dynamics are learnable, the information needed to learn them is a resource that runs out quickly.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{figs/fig_law3.pdf}
+\caption{Learnability--horizon curves (exploratory). (a)~Lorenz-63: accuracy gap to the ensemble rule for 1-NN (blue) and $k$-NN (orange) at $L=1$ and $3$, three seeds each; dotted: estimated 1-NN floors. (b)~Sample size at which the gap reaches $0.05$, by system and learner; circle interpolated, triangle extrapolated from a floor fit (capped at $10^{6.9}$); dotted line: largest $n$ measured; row ``none'': no crossing (open square: not identifiable), offset by system. (c)~Per-seed growth rates from interpolated crossings against the range of correlation-dimension estimates; dashed: $\gamma_L=D_2$.}
+\label{fig:law3}
+\end{figure*}
+
+\begin{table*}[!t]
+\caption{Learnability--Horizon Rates for Two Learners (Gap $0.05$; Three Seeds)}
+\label{tab:law3}
+\centering
+\footnotesize
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+System & $\lambda$ & $D_2$ range & max 1-NN floor & $\gamma_L$, 1-NN & $\gamma_L$, $k$-NN & crossings 1-NN & crossings $k$-NN\\
+\midrule
+\csname @@input\endcsname gen/tab_law3.tex
+\bottomrule
+\end{tabular}
+\vspace{2pt}
+
+\parbox{\textwidth}{\footnotesize $\gamma_L$: mean $\pm$ s.d.\ over seeds of the slope of $\ln n^*$ on horizon (Lyapunov times), interpolated crossings only (seeds with $\ge3$ interpolated crossings in parentheses). Crossings: counts over 3 seeds $\times$ 6 horizons as interpolated/extrapolated/unattainable/not identifiable; the remainder were within tolerance at $n=10^3$. $^\ddagger$Exploratory only.}
+\end{table*}
+
+\subsection{Informational limits: what nine forecasting tasks achieve}\label{sec:res-atlas}
+Real forecasting problems have no known ceiling; what can be measured is achieved skill, the information a fitted model extracts beyond the base rate, together with its model term (Eq.~\eqref{eq:lss}). Table~\ref{tab:atlas} and Fig.~\ref{fig:atlas} report it for nine tasks under strict walk-forward evaluation, with entity and time-block intervals side by side.
+
+\emph{Physical systems with good measurements are the most predictable.} Rain tomorrow with an NWP forecast as input reaches skill $\nwpNestBLSS$; the NWP benchmark alone achieves $\nwpBenchLSS$, about $\nwpRatio$ times the best model built from station observations on the same rows. Most of the knowable part of tomorrow's weather lies in information that a physical model assembles and a station history lacks, which is the epistemic term of Eq.~\eqref{eq:anat} in practice.
+
+\emph{Social outcomes are partly predictable, mainly through information others have already aggregated.} Football home wins reach $\fbNestLSS$ from observable history, and closing betting odds ($\fbBenchLSS$) exceed every model we fitted. Presidential state outcomes reach $\prNestLSS$, but with only $\prTBn$ elections the time-block interval is wide ($\prTBlo$ to $\prTBhi$).
+
+\emph{High accuracy is not high knowledge.} House seats are called correctly $\hsAcc$ of the time, which sounds like strong prediction; ``the incumbent party holds'' already scores $\hsAccZero$, and no model beats it in accuracy. This is the base-rate neglect of~\cite{kahneman1973psychology} in quantitative form: accuracy without a reference says nothing about what was known.
+
+\emph{Reflexive markets leave almost nothing.} Next-day direction of large U.S.\ stocks and funds has skill $\stLSS$ under the entity bootstrap and an interval of $\stTBlo$ to $\stTBhi$ under time-block resampling, consistent with efficient-market theory for public price information~\cite{fama1970efficient}. This does not show that markets are unpredictable from richer information; it shows that the public price history contains essentially no usable signal about tomorrow's direction.
+
+\emph{Induction mostly holds forward.} Every task except stocks retains positive skill when every forecast is made strictly before its outcome, with a base rate that is itself point in time. Some nested increments are negative (adding entity history to rain, House and stock models made them slightly worse), a reminder that unused flexibility is a cost, not a neutral addition. Earthquakes show where skill comes from: in seismically active cells, recent activity (event counts over the past week, month and year, days since the last event, recent large shocks and activity in neighbouring cells) gives skill $\eqActiveModLSS$ over the base rate, while the entity model adds nothing ($\eqActiveEBLSS$); in quiet cells skill is $\eqQuietModLSS$. What is forecastable here is the clustering of events after recent activity.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{figs/fig_atlas_rev.pdf}
+\caption{Achieved log-loss skill relative to point-in-time base rates (primary nested model; stacked by achieved score improvement from entity history, features and external benchmarks; negative increments drawn to the left). Grey diamonds are reference values of controls (exact or simulated), not fitted skill.}
+\label{fig:atlas}
+\end{figure}
+
+\begin{table*}[!t]
+\caption{Achieved Skill Relative to Point-in-Time Base Rates}
+\label{tab:atlas}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{2.6pt}
+\begin{tabular}{@{}lrcccccccccc@{}}
+\toprule
+Task & $n$ & $A_0$ & $A$ & $S_{acc}$ & LSS [entity CI] & [time-block CI] & entity & features & bench. & $\kappa_U$ diag. & $\tau$\\
+\midrule
+\csname @@input\endcsname gen/tab_atlas_tb.tex
+\bottomrule
+\end{tabular}
+\vspace{2pt}
+
+\parbox{\textwidth}{\footnotesize $A_0$: base-rate accuracy; $S_{acc}$: accuracy skill over the base rate. LSS: achieved skill of the primary nested model; entity, features, bench.: achieved score improvements of nested models as shares of the baseline loss (signed; not mutual informations). Time-block CI: bootstrap over contiguous calendar blocks, the primary interval where shocks are shared. $^\S$Only qubit resampling is available for the hardware task; it ignores shared device-time shocks and its coverage is not validated. $\kappa_U$ diag.: Hellman--Raviv plug-in diagnostic from a finite-sample 1-NN error (no coverage guarantee). Controls report exact or ensemble reference values.}
+\end{table*}
+
+\subsection{Self-inflicted limits: when measured edge is illusory}\label{sec:res-self}
+The measurement term of Proposition~\ref{prop:anat} is the one forecasters control and most often ignore. For two fixed decision rules $f,g$ with true accuracy difference $\Delta$, the difference $\tilde\Delta$ measured against recorded labels satisfies the exact identity $\tilde\Delta-\Delta=2\,\E[(f(X)-g(X))(\tilde q(X)-q(X))]$, where $q$ and $\tilde q$ are the true and recorded label probabilities (Proposition~\ref{prop:appinfl}). Errors that flip labels independently of everything only shrink an edge, by the factor $1-2\rho$; errors attached to particular entities and repeated over time can create one, and can turn a negative true edge into a positive measured one (Proposition~\ref{prop:apprev}). Because future labels carry the same errors, walk-forward validation rewards a model that learns them (Proposition~\ref{prop:appwf}). Validation in time order, the standard answer to Hume's problem in forecasting practice, does not protect against this.
+
+The cheapest defence is to check labels only where it matters. Only rows on which two rules disagree affect the measured difference; checking a random sample of them bounds the true edge on the evaluated population with an exact hypergeometric guarantee (Proposition~\ref{prop:appaudit}).
+
+The mechanism was found in the model that motivated this work: a forecast of whether a firm's diluted earnings beat the midpoint of its original guidance~\cite{ciconte2014midpoint}. The $\ecRem$ rows later removed because their labels had been extracted wrongly (continuing-operations guidance scored against total earnings, quarters mismatched) carried an apparent edge of $\ecRemEdge$ points over the base rate. On a fixed cohort of $\ecRows$ correctly labelled forecasts, the edge was $\ecA$ points ($\ecAlo$ to $\ecAhi$) before and $\ecB$ ($\ecBlo$ to $\ecBhi$) after retraining on cleaned history, a paired change of $\ecDiff$ ($\ecDifflo$ to $\ecDiffhi$): no effect of retraining was detected. An audit of 40 randomly drawn rows from the $\auND$ disagreement rows of the $\auPop$-row audit population found $\eAuditE$ errors in 39 verifiable rows and bounds the weighted edge on that population below by $\auLBwHa$ points (Fig.~\ref{fig:illusory}); no positive edge can be certified. The defensible conclusion is that the apparent advantage, almost three points before cleaning ($\eBeforeEdge$), was concentrated in invalid or target-incompatible evaluation rows and that no advantage was established on the retained cohort. Because the removed rows cannot be relabelled, the application does not demonstrate the sign reversal that the theory shows to be possible. The companion paper~\cite{abraham2026illusory} gives the full analysis, including the audit weights.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{figs/fig_illusory.pdf}
+\caption{Illusory edge. (a)~Measured (orange) and true (blue) edge of an entity rule over the base rate under persistent label corruption: surfaces from Proposition~\ref{prop:apprev}, points from simulation. (b)~Measured against true edge in 9{,}360 simulated panels. (c)~Earnings: each estimate labelled by its population (points; bars: 95\% issuer-bootstrap intervals): removed rows against their original labels, the fixed cohort before and after retraining and their paired change, and the audit population's measured weighted edge with its one-sided 95\% hypergeometric lower bound.}
+\label{fig:illusory}
+\end{figure*}
+
+\subsection{Information versus computation: quantum classifiers}\label{sec:res-qc}
+Proposition~\ref{prop:appqc} settles the theoretical question: a quantum model applied to classical inputs is, given its training data, a randomised function of those inputs, and cannot exceed their Bayes ceiling. It may approach the ceiling with less computation or, for constructed problems, fewer samples~\cite{liu2021rigorous,huang2021information}; whether it fits real forecasting data better is empirical. We compared variational circuits and quantum kernels with matched classical models (logistic regression, gradient boosting, a classical Fourier surrogate of the variational circuit and an RBF support-vector machine) on identical six-dimensional inputs in eight domains, selecting each family's model on validation data (Table~\ref{tab:quantum}).
+
+No quantum model was significantly better than its classical counterpart in any domain (smallest Holm-adjusted $p=\qrevMinHolm$), and the classical model was better under both resampling schemes in $\qrevNsigWorse$. The one case that depends on the dependence model is stocks: the variational circuit (skill $\qrevStLq$) beat the selected classical model ($\qrevStLc$) under an entity bootstrap ($p=\qrevStPe$) but not under a month-block bootstrap ($p=\qrevStPt$); with shared market shocks the latter is the relevant one, and both skills are close to zero. This is a failure to detect an advantage in small simulated circuits, not proof that none exists. It is what the four-term decomposition leads one to expect: quantum computation acts on the model term, and in these tasks the model term of simple classical models is already small compared with the information they lack.
+
+\begin{table*}[!t]
+\caption{Quantum and Classical Models Selected on Validation Data (Test LSS)}
+\label{tab:quantum}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lrcccccccc@{}}
+\toprule
+Domain & $n_{\rm test}$ & selected classical & selected quantum & $\Delta$LL (Q$-$C) & 95\% CI, entity & 95\% CI, time & DM $p$ & boot.\ $p$ (entity / time) & Holm $p$\\
+\midrule
+\csname @@input\endcsname gen/tab_quantum_rev.tex
+\bottomrule
+\end{tabular}
+\vspace{2pt}
+
+\parbox{\textwidth}{\footnotesize Selection by validation log loss within each family on identical six-dimensional inputs; the variational circuits also use the validation split for early stopping. $\Delta$LL $>0$: quantum worse. Entity: bootstrap over entities; time: bootstrap over calendar months (20 contiguous blocks for the synthetic tasks, 6 election years for the House). DM $p$: one-sided Diebold--Mariano (quantum better), approximate under panel dependence. Boot.\ $p$: one-sided, share of bootstrap differences $\ge0$. Holm $p$: Holm adjustment over the eight domains of the larger of the two bootstrap $p$-values.}
+\end{table*}
+
+\subsection{Where quantum resources change what is knowable}\label{sec:res-side}
+Quantum resources can change predictability by changing the information. In the CHSH game two players receive independent uniform bits $a,b$, answer $x,y$ without communicating and win if $x\oplus y=a\wedge b$; the best classical strategy wins with probability $0.75$, and a shared maximally entangled pair allows $\cos^2(\pi/8)\approx0.854$~\cite{clauser1969proposed,tsirelson1980quantum}. Each player is in effect predicting a function of the other's input and output, so the game measures how much a correlated system predicts about a distant event. The bound $0.75$ belongs to this game, not to prediction in general.
+
+In simulation, the entangled strategy won $\chshSim$ of rounds. A forecaster predicting one qubit of a maximally entangled pair, measured in a basis chosen at random, is right half the time with no side information, $\sideCls$ of the time when holding the partner's computational-basis outcome recorded before the basis was chosen, and always ($\sideQ$) when holding the partner qubit itself and told the basis afterwards; this last case predicts the chosen measurement, not the outcomes of incompatible measurements simultaneously~\cite{berta2010uncertainty,konig2009operational}.
+
+On IBM's ibm\_kingston on \liveDate, the game was won in $\liveChsh$ of $\liveTrials$ rounds (standard error $\liveChshSE$), above the classical $0.75$ and close to the quantum maximum; both qubits sit on one chip, so this demonstrates the game and is not a Bell test. In the loophole-free Delft experiment~\cite{hensen2016second}, reanalysed with its released selection code, the $\bellN$ valid trials give $S=\bellS\pm\bellSerr$ and a win rate of $\bellW$ ($\bellWlo$--$\bellWhi$) under the heralded-state convention of the original analysis; with the literal winning condition the rate is $\bellWlit$, which does not exceed $0.75$, and the published complete analysis reports $p=\bellP$. Predicting Bob's outcome from his own setting gives $\bellOwn$; adding Alice's setting and outcome gives $\bellSide$ ($\bellSidelo$--$\bellSidehi$). Entanglement, not computation, is the quantum resource that moves a predictability limit, and in the best available experiment the gain is real but small and statistically modest (Fig.~\ref{fig:hardware}).
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{figs/fig_hardware.pdf}
+\caption{Quantum hardware. (a)~Live ibm\_kingston: measured $P(\text{read }1)$ after $R_y(\theta)$ for two qubits, 4{,}000 shots per point, with the ideal response. (b)~CHSH win probability in simulation, on eight IBM device noise models, on ibm\_kingston (a single-chip game, not a Bell test) and in the Delft loophole-free Bell test (heralded-state winning condition). (c)~Accuracy of predicting an outcome with and without side information.}
+\label{fig:hardware}
+\end{figure*}
+
+\subsection{Forecasting the forecasting machine}\label{sec:res-drift}
+Quantum processors are themselves physical systems whose future can be forecast. IBM recalibrates its processors roughly daily; using $\drObs$ calibration records of $\drQubits$ qubits on three processors over $\drDays$ days~\cite{norton2026drift}, deduplicated on the calibration timestamp, we forecast each qubit's next calibration walk-forward. Readout and two-qubit gate errors are partly forecastable one calibration ahead (mean-squared-error skill $\drRoOne$ and $\drCzOne$ against each qubit's own history), decaying to $\drRoFt$ and $\drCzFt$ two weeks ahead. Coherence times are at most weakly forecastable ($T_1$: $\drToneOne$ [$\drToneOnelo$, $\drToneOnehi$]; $T_2$: $\drTtwoOne$), consistent with fluctuations driven by microscopic defects~\cite{klimov2018fluctuations,carroll2022dynamics}. Whether a qubit will be out of tolerance at its next calibration (base rate $\dbPBase$) is forecast with skill $\dbPHgbLSS$ ($\dbPHgbLSSlo$--$\dbPHgbLSShi$); a qubit that was bad is out of tolerance next time with probability $\dbPBadBad$, against $\dbPBadGood$ after a good calibration (Figs.~\ref{fig:drift},~\ref{fig:heat}). Intervals resample qubits and ignore shared device-time shocks, so their coverage is not validated; an independently collected dataset over $\drSecDays$ days shows the same pattern. The same machines that cannot raise a classical ceiling have predictable and unpredictable parts of their own, and the split follows the physics: errors with slowly varying causes persist, defect-driven relaxation does not.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{figs/fig_drift.pdf}
+\caption{Forecasting IBM processor calibrations. (a)~Mean-squared-error skill against each qubit's climatology by horizon (bands: 95\% qubit-clustered intervals; dashed: replication dataset; dotted: persistence for readout error). (b)~Probability that a qubit is out of tolerance $k$ calibrations after a bad (red) or good (blue) calibration; grey: base rate. (c)~Log-loss skill of three models for the out-of-tolerance task; dotted: beta-binomial entity-only reference.}
+\label{fig:drift}
+\end{figure*}
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{figs/fig_drift_heat.pdf}
+\caption{Calibration histories of ibm\_kingston: (a)~readout error and (b)~$T_1$ for each qubit (rows, sorted by median) at each daily calibration (columns), January--November 2026. Three-dimensional renderings are in Appendix~\ref{app:render}.}
+\label{fig:heat}
+\end{figure*}
+
+\subsection{Falsifiable predictions: the preregistration scorecard}\label{sec:res-prereg}
+H1 has two components: H1a (the best learner within $0.02$ of the qubit ceiling at $n\ge10^4$) was met; H1b (the Cover--Hart plug-in at or above the reference in at least 80\% of control settings) failed ($\chValidPct\%$). For H2, the rank correlation between predicted and measured skill was $\preRho$, above the preregistered $0.6$, but only $\preHits$ of $\preN$ point intervals contained the measured value, and the misses were mostly toward lower skill: we expected more of the future to be knowable than it was. H3 (accuracy skill below $0.15$ for earnings and stocks) and H6 (the chaos ceiling approaching one as noise falls, the qubit ceiling fixed) were consistent with the data. For H4 the simulation component was met and the earnings edge fell after cleaning, though the fixed-cohort analysis attributes the fall to removed rows more than to retraining. For H5 no significant quantum advantage was detected; failing to reject is not evidence of absence. Analyses added after the preregistration, including all hardware, Bell-test and multi-system chaos results, are exploratory.
+
+\section{Discussion: How Much of the Future Is Knowable?}\label{sec:discussion}
+The question has a measured answer for each event and information set, not a single one. The results nonetheless show a pattern.
+
+\emph{Where the limit is epistemic, it moves with measurement.} In a deterministic chaotic system the ceiling approaches one as precision improves, but each tenfold gain buys a fixed increment of horizon, and learning the dynamics from data costs a factor of roughly $\mathrm{e}^{2}$ to $\mathrm{e}^{3}$ more examples per Lyapunov time for the learners we tested. Laplace was right about such systems in principle and wrong about them in practice. Weather shows the same structure at scale: almost all achievable skill comes from the physical model's information, not from statistical cleverness applied to local history.
+
+\emph{Where the limit is ontic, nothing moves it.} The qubit's ceiling is fixed by the Born rule; exact knowledge of the preparation leaves more than half of the outcome's entropy unremoved, and real hardware only subtracts from the ceiling. The one way around it is to change what is known about the outcome, by holding an entangled partner; computation on classical data does not.
+
+\emph{Where the limit is informational, others often hold the information.} In social and economic tasks the models extract modest skill, and the benchmarks that aggregate other people's information (weather models, betting odds) carry most of what is knowable. In public market prices, almost nothing about tomorrow's direction remains.
+
+\emph{The limit forecasters most often exceed is the one they impose on themselves.} The largest apparent edge in this study, in the earnings model, sat in evaluation rows with persistent label errors that standard validation could not see. The House result shows the same overstatement in a different guise: accuracy against no reference. Our own preregistered intervals erred toward optimism. In the cases studied here, the gap between what was claimed (or expected) and what was known was larger than the gap between what was known and what was knowable.
+
+\emph{Implications.} For machine-learning forecasting, the decomposition says where effort pays: better information reduces the epistemic term, better models only the model term, and label audits the measurement term, which can dominate. For finance, near-zero skill in public prices is a measured property of one information set, not a statement about all of them. For quantum computing, faster or larger quantum models cannot raise a classical ceiling; quantum information changes predictability only when the information itself is quantum, and the hardware that would do this is a forecasting problem in its own right.
+
+\emph{Scope.} The domains are a convenience sample of tasks with free data, and achieved skill bounds knowability only from below. The chaos and hardware studies are exploratory, and each could support a dedicated study.
+
+\section{Threats to Validity}\label{sec:threats}
+\emph{Ceilings.} Real-task ceilings are unknown; achieved skill depends on models and features, and nearest-neighbour plug-in values are diagnostics, not bounds. \emph{Chaos.} The ensemble reference is an approximate posterior validated for Lorenz-63 at larger noise and horizons up to two Lyapunov times; chaos results are gaps to that reference; two learners, one relative noise level and three seeds per system (descriptive spread) were used. \emph{Labels.} Earnings labels are machine-extracted, the audit covers only disagreement rows with one auditor, and the removed rows could not be relabelled. \emph{Dependence.} Time-block intervals are used where shocks are shared, but multiway dependence is not fully modelled. \emph{Data.} Revised observations and catalogues, survivorship in the stock universe, guidance revisions and calibration publication delays are unresolved point-in-time risks; House data end in 2018; the NWP benchmark is a calibrated proxy over 17 months. \emph{Hardware.} One processor on one day for the live run, a single-chip game rather than a Bell test, third-party calibration polling, qubit-resampled intervals that ignore shared device-time shocks. \emph{Preregistration.} Timing rests on local records; many analyses are exploratory.
+
+\section{Conclusion}
+How much of the future is knowable is a quantity, not a slogan. It is the Bayes ceiling of a stated information set, and the loss of any forecast splits exactly into randomness that no knowledge removes, information not used, imperfect use of the information held and errors in the record. Measured on one scale, a qubit's outcome stays partly unknowable however well it is prepared; a chaotic flow becomes knowable as measurement sharpens, but each extra unit of horizon costs exponentially in precision and, for the learners we tested, steeply in data; real social and economic outcomes are modestly predictable, mostly through information that experts and physical models already aggregate; and the largest apparent edge we found sat in rows with persistent label errors. Quantum computers do not raise these ceilings; quantum entanglement changes them by changing the information, and in the best available experiment the gain is real but small. The future is partly knowable, by an amount that can be measured, and the measurement most often shows that we know less than we claim.
+
+\appendices
+\input{appendix_math.tex}
+
+\section{Reproducibility}\label{app:repro}
+The preregistration's SHA-256 digest is\\
+\texttt{\small abee64cc5cd31d0b2212550d03508580}\\
+\texttt{\small 561aa6cc47eb9462462ddb88a983d33c}.\\
+Exact code commit: \texttt{\small 1a25d144b1acfd1f43a0}\\
+\texttt{\small ff2355368544637f510d} (branch \texttt{revision-2}). No public repository URL or persistent archive identifier exists yet; until one is deposited, the release (code, audit sample and weights, timestamp specification, result files, lockfile and hashes) is available from the author, and this commit identifies it exactly. The repository (git branch \texttt{revision-2}) contains the shared library with unit tests (closed forms, inflation identity, 1-NN asymptotics, audit coverage, beta-binomial accuracy, GPU simulator against Qiskit), one builder per task, the walk-forward evaluator, the control and chaos studies (\texttt{run\_controls.py}, \texttt{run\_law3.py}, \texttt{validate\_posterior.py}), the revision analyses (\texttt{rev2\_analyses.py}), the validation-selected quantum comparison (\texttt{run\_quantum2.py}), the figures of this paper (\texttt{fig\_know.py}, \texttt{fig\_rev2.py}, \texttt{fig\_hw.py}), a feature-and-timestamp specification with the leakage audit, an environment lockfile, file hashes, and a manifest mapping every table and figure to its script. Every number in the text is generated from result files into \LaTeX\ macros. Data sources: Meteostat (CC BY-NC 4.0), Open-Meteo, football-data.co.uk, MIT Election Data and Science Lab (CC0), Yahoo Finance via \texttt{yfinance}, USGS ComCat, SEC EDGAR, IBM calibration histories (CC BY 4.0; replication dataset analysed but not redistributed), the Delft Bell-test data (4TU.ResearchData), IBM device noise models in \texttt{qiskit-ibm-runtime}, and IBM Quantum job \texttt{dbnk4cc4148s73915tpg}; all accessed in November 2026.
+
+\section{Three-Dimensional Renderings}\label{app:render}
+Figure~\ref{fig:render} reproduces renderings from the interactive companion: the calibration surfaces behind Fig.~\ref{fig:heat} and ensemble certainty on the Lorenz attractor. They summarise results reported above and support no additional inference.
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.53\textwidth]{figs/comp_drift3d_readout.png}\hfill
+\includegraphics[width=0.46\textwidth]{figs/comp_drift3d_t1.png}\\[3pt]
+\includegraphics[width=0.6\textwidth]{figs/comp_lorenz_h2.png}
+\caption{Renderings from the interactive companion. Top: ibm\_kingston calibration surfaces of Fig.~\ref{fig:heat}, $\log_{10}$ readout error and $\log_{10}T_1$ ($\mu$s) over qubit (depth, sorted by median) and calibration day (horizontal). Bottom: ensemble certainty $2|\hat\eta-\tfrac12|$ of the sign of $x(t+2)$ on the Lorenz attractor ($\sigma_o=0.1$).}
+\label{fig:render}
+\end{figure*}
+
+\section*{Acknowledgment}
+Computational experiments, analysis code and drafting were assisted by an AI system (Claude, Anthropic), which is not an author. All reported numbers are produced by the released code.
+
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+
+\end{document}
