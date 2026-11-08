@@ -21,6 +21,7 @@ HORIZONS = [1, 2, 4, 7, 14]
 NB = 500
 COVS = ["temperature_c", "pressure_hpa", "kp_index", "dst_nt", "neutron_flux"]
 rng0 = np.random.default_rng(20261107)
+ROWDIR = None
 
 
 # ------------------------------------------------------------------ data
@@ -335,6 +336,8 @@ def run_taskB(Pro, Pt1, covarr, h=1, with_cov=True):
                           LSS_ceiling=float(bc["kappa"]))
     out["label_def"] = "bad = readout_error > device expanding P90 (strictly past days) OR T1 < device expanding P10; both observed on target day"
     out["bad_readout_share_among_eval_bad"] = float(np.nanmean(bad_ro_only[si, o + h][y == 1]))
+    if ROWDIR is not None:   # row-level predictions for dependence-robust inference (qdrift_twoway.py)
+        np.savez_compressed(os.path.join(ROWDIR, "taskB.npz"), y=y, base=base, p_q=p_q, p_l=p_l, p_h=p_h, o=o, cl=np.asarray(clr, dtype="U"), devi=devi[si])
     return out
 
 
@@ -342,6 +345,7 @@ def run_taskB(Pro, Pt1, covarr, h=1, with_cov=True):
 if __name__ == "__main__":
     src = sys.argv[1]
     t0 = time.time()
+    ROWDIR = os.path.join(K, "repo", "results", f"qdrift_rows_{src}"); os.makedirs(ROWDIR, exist_ok=True)
     if src == "primary":
         raw, cov, meta = load_primary(); metrics = ["readout_error", "T1", "T2", "sx_error", "cz_error"]
     else:
@@ -360,6 +364,8 @@ if __name__ == "__main__":
         R["taskA"][m] = {}
         for h in HORIZONS:
             res = run_taskA(panels[m], covarr, h)
+            np.savez_compressed(os.path.join(ROWDIR, f"taskA_{m}_h{h}.npz"), o=res["o"], y=res["y"], pers=res["pers"], clim=res["clim"],
+                                ridge=res["ridge"], hgb=res["hgb"], cl=np.asarray(panels[m]["keys"].cl.to_numpy(dtype=object)[res["si"]], dtype="U"))
             R["taskA"][m][f"h{h}"] = summarize_A(res, panels[m], h)
             s = R["taskA"][m][f"h{h}"]
             print(m, h, "n=%d" % s["n"], {k: (round(v["skill"], 4), round(v["lo"], 4), round(v["hi"], 4)) for k, v in s.items() if k.startswith("skill")}, "mse", {k: round(v, 5) for k, v in s["mse"].items()}, "t=%.0fs" % (time.time() - t0), flush=True)
