@@ -3,8 +3,8 @@
 Usage: python qdrift.py primary|secondary   (set OMP_NUM_THREADS=12)
 Everything printed is computed; results go to results/qdrift_<src>.json (merged into results/qdrift.json).
 """
-import sys, os, json, time
-K = "C:/Users/johan/AppData/Local/Temp/claude/b7dc35862fdf9617/084886cb-1afb-424d-85d4-d856b33f3240/scratchpad/kn"
+import sys, os, json, time, pathlib
+K = str(pathlib.Path(__file__).resolve().parents[2])   # project root: repo/, data/, raw/ side by side
 sys.path.insert(0, K + "/repo")
 import numpy as np, pandas as pd, warnings
 warnings.filterwarnings("ignore")

@@ -1,0 +1,304 @@
+{
+ "audit": {
+  "N_D_rows": 82,
+  "P_D_weighted": 0.10491731940818104,
+  "P_D_unweighted": 0.12974683544303797,
+  "delta_measured_weighted": -0.008746736292428198,
+  "accounting": {
+   "n_combined_rows": 972,
+   "n_audited20_rows": 340,
+   "n_population_rows": 632,
+   "n_population_issuers": 90,
+   "W_total": 383.0,
+   "W_D": 40.18333333333334,
+   "w_min": 0.16666666666666666,
+   "w_max": 1.0,
+   "weight_definition": "1 / (number of rows forecasting the same outcome group); each outcome group carries total weight 1",
+   "population": "harvested (src=new) rows of the cleaned combined universe; the 340 previously hand-audited rows are excluded"
+  },
+  "sampling": "40 rows drawn uniformly without replacement from the 82 disagreement rows (numpy RandomState(20261106).choice(82, 40)); one unverifiable",
+  "scenarios": {
+   "exclude_unverifiable": {
+    "e": 2,
+    "n": 39,
+    "N_D": 82,
+    "K_U_hypergeom": 10,
+    "rho_U_hypergeom": 0.12195121951219512,
+    "rho_U_clopper_pearson": 0.15276510530744303,
+    "W_top_KU": 10.0,
+    "delta_lower_unweighted_hyper": null,
+    "delta_lower_weighted_hyper": -0.06096605744125326,
+    "delta_lower_cp_PDw": -0.040802146988359024,
+    "tight": {
+     "w_sample_problem_rows": 1.5,
+     "n_sample_problem_rows": 2,
+     "n_unaudited": 42,
+     "w_top_unaudited": 8.0,
+     "delta_lower_weighted_hyper_tight": -0.05835509138381201
+    }
+   },
+   "unverifiable_as_wrong": {
+    "e": 3,
+    "n": 40,
+    "N_D": 82,
+    "K_U_hypergeom": 12,
+    "rho_U_hypergeom": 0.14634146341463414,
+    "rho_U_clopper_pearson": 0.18258685001590122,
+    "W_top_KU": 12.0,
+    "delta_lower_unweighted_hyper": null,
+    "delta_lower_weighted_hyper": -0.07140992167101827,
+    "delta_lower_cp_PDw": -0.04705978201813211,
+    "tight": {
+     "w_sample_problem_rows": 1.75,
+     "n_sample_problem_rows": 3,
+     "n_unaudited": 42,
+     "w_top_unaudited": 9.0,
+     "delta_lower_weighted_hyper_tight": -0.06488250652741515
+    }
+   }
+  },
+  "note": "bound concerns the fixed finite population of harvested disagreement rows (labels as evaluated), not future predictive edge"
+ },
+ "power": {
+  "formula": "n = (z_{1-a/2}+z_{1-b})^2 * P(D) / delta^2 (McNemar, independent forecasts)",
+  "alpha_two_sided": 0.05,
+  "power": 0.8,
+  "delta": 0.01,
+  "P_D": 0.10491731940818104,
+  "n_required": 8234.834220851024,
+  "n_required_design_effect_2": 16469.668441702048,
+  "n_available": 972,
+  "n_outcome_groups_available": 569,
+  "n_issuers_available": 110,
+  "approximation": "equal-weight, independent-outcome McNemar approximation; not justified for weighted, repeated forecast rows",
+  "note": "independence across forecasts assumed; clustering by issuer and fiscal period raises the requirement by the design effect"
+ },
+ "earnings_cohort": {
+  "fixed_cohort_rows": 587,
+  "fixed_cohort_tickers": 82,
+  "A_archived_before_sweep_on_cohort": 0.004631379962192815,
+  "A_ci": [
+   -0.03630784481339657,
+   0.04695725949564428
+  ],
+  "B_after_sweep_retrained_on_cohort": -0.008081285444234403,
+  "B_ci": [
+   -0.03916925336753032,
+   0.022194565380530513
+  ],
+  "B_minus_A_paired": -0.012712665406427218,
+  "B_minus_A_ci": [
+   -0.044692052861073285,
+   0.018825141491928
+  ],
+  "removed_rows": 76,
+  "removed_rows_edge_archived_original_labels": 0.2012987012987013,
+  "removed_by_counts": {
+   "continuing_ops": 34,
+   "scale_check": 33,
+   "quarter_ordinal": 9
+  },
+  "note": "Cohort = rows scored in both sweeps and not removed: labels identical, so A vs B isolates the effect of correcting the training history (retraining). Removed rows were excluded, not relabelled: corrected labels (e.g. total-EPS guidance for continuing-operations rows) are not available, so 'scored against corrected labels' cannot be computed for them."
+ },
+ "readout": {
+  "derivation": "A* = 1/2 + [beta sin(t0) + a (pi - 2 t0)]/pi, a = (e0-e1)/2, beta = 1-e0-e1, cos t0 = 2a/beta (|2a| < beta)",
+  "live": {
+   "5": {
+    "e0": 0.004586525771608659,
+    "e1": 0.00652402577160871,
+    "A_opt": 0.8147738919521691,
+    "A_opt_numeric": 0.8147747903030028,
+    "A_fixed_threshold": 0.814774190976574,
+    "symmetric_formula": 0.81477328778663,
+    "base_rate": 0.4990312499999999,
+    "kappa": 0.42819648004270283,
+    "A_opt_ci": [
+     0.8131904726405007,
+     0.8163986677158782
+    ],
+    "max_resid": 0.011870651866118243
+   },
+   "42": {
+    "e0": 0.004342737492040094,
+    "e1": 0.0131864874920401,
+    "A_opt": 0.8127428305661423,
+    "A_opt_numeric": 0.8127437230203315,
+    "A_fixed_threshold": 0.8127310751987243,
+    "symmetric_formula": 0.8127301605742181,
+    "base_rate": 0.4955781249999999,
+    "kappa": 0.4206411587314386,
+    "A_opt_ci": [
+     0.8110585764348918,
+     0.8144333447406448
+    ],
+    "max_resid": 0.014980044841102547
+   }
+  },
+  "noise_models_max_abs_diff_formula_vs_opt": 2.194639957575628e-05,
+  "noise_models_max_abs_diff_reported_vs_opt": 8.987371229673968e-06
+ },
+ "time_block": {
+  "d4_weather": {
+   "model": "p_M4n",
+   "block": "M",
+   "n_blocks": 252,
+   "LSS": 0.057465640825124176,
+   "LSS_ci_time_block": [
+    0.054979951281479346,
+    0.06017044970846894
+   ]
+  },
+  "d4_weather_nwp": {
+   "model": "p_M4bn",
+   "block": "M",
+   "n_blocks": 17,
+   "LSS": 0.34607605997294244,
+   "LSS_ci_time_block": [
+    0.3174218051871323,
+    0.3731119222115444
+   ]
+  },
+  "d5_football": {
+   "model": "p_M4bn",
+   "block": "M",
+   "n_blocks": 169,
+   "LSS": 0.11454341936230639,
+   "LSS_ci_time_block": [
+    0.10822837942050467,
+    0.12095065633105265
+   ]
+  },
+  "d6_house": {
+   "model": "p_M4n",
+   "block": "Y",
+   "n_blocks": 17,
+   "LSS": 0.1669822324748994,
+   "LSS_ci_time_block": [
+    0.1274615018920021,
+    0.20117946037242374
+   ]
+  },
+  "d6_president": {
+   "model": "p_M4n",
+   "block": "Y",
+   "n_blocks": 9,
+   "LSS": 0.345485125837078,
+   "LSS_ci_time_block": [
+    0.04966847349120564,
+    0.6029711572121048
+   ]
+  },
+  "d8_stocks": {
+   "model": "p_M4n",
+   "block": "M",
+   "n_blocks": 214,
+   "LSS": 0.00025146748914028905,
+   "LSS_ci_time_block": [
+    -0.0007337589502011855,
+    0.001206963685510351
+   ]
+  },
+  "d9_quakes": {
+   "model": "p_M4n",
+   "block": "Q",
+   "n_blocks": 80,
+   "LSS": 0.048777233740085135,
+   "LSS_ci_time_block": [
+    0.044796656243317856,
+    0.05283422886255063
+   ]
+  },
+  "d7_earnings": {
+   "model": "combo",
+   "block": "Q",
+   "n_blocks": 18,
+   "LSS": 0.06317741105881136,
+   "LSS_ci_time_block": [
+    0.03216852603227855,
+    0.09408484085024212
+   ]
+  }
+ },
+ "two_way": {
+  "d4_weather": {
+   "model": "p_M4n",
+   "block": "M",
+   "n_entities": 61,
+   "n_blocks": 252,
+   "LSS_ci_two_way": [
+    0.048079504474064394,
+    0.06713877907981769
+   ]
+  },
+  "d4_weather_nwp": {
+   "model": "p_M4bn",
+   "block": "M",
+   "n_entities": 61,
+   "n_blocks": 17,
+   "LSS_ci_two_way": [
+    0.29962851850753414,
+    0.38920900401491754
+   ]
+  },
+  "d5_football": {
+   "model": "p_M4bn",
+   "block": "M",
+   "n_entities": 194,
+   "n_blocks": 169,
+   "LSS_ci_two_way": [
+    0.09824689030629863,
+    0.1309903507209933
+   ]
+  },
+  "d6_house": {
+   "model": "p_M4n",
+   "block": "Y",
+   "n_entities": 479,
+   "n_blocks": 17,
+   "LSS_ci_two_way": [
+    0.1131073951261411,
+    0.214723637586952
+   ]
+  },
+  "d6_president": {
+   "model": "p_M4n",
+   "block": "Y",
+   "n_entities": 51,
+   "n_blocks": 9,
+   "LSS_ci_two_way": [
+    0.043362504918074585,
+    0.6412069668242774
+   ]
+  },
+  "d8_stocks": {
+   "model": "p_M4n",
+   "block": "M",
+   "n_entities": 110,
+   "n_blocks": 214,
+   "LSS_ci_two_way": [
+    -0.000676122833709103,
+    0.0012633731498021827
+   ]
+  },
+  "d9_quakes": {
+   "model": "p_M4n",
+   "block": "Q",
+   "n_entities": 300,
+   "n_blocks": 80,
+   "LSS_ci_two_way": [
+    0.04137531267518768,
+    0.0563639965569428
+   ]
+  },
+  "d7_earnings": {
+   "model": "combo",
+   "block": "Q",
+   "n_entities": 110,
+   "n_blocks": 18,
+   "LSS_ci_two_way": [
+    0.0027817213298600985,
+    0.12845723847175816
+   ]
+  }
+ }
+}

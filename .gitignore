@@ -1,4 +1,6 @@
-results/
+results/*.parquet
+results/*.log
+results/*.npz
 *.log
 __pycache__/
 .pytest_cache/
