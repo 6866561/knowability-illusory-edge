@@ -37,5 +37,5 @@
 - **Quantum and hardware material:** moved to supplementary Appendix B, with a one-paragraph summary in the main text.
 
 **Also found and fixed during this round.**
-- The paper had said "nine tasks", but the atlas has nine real-data tasks; corrected in both papers.
+- The paper had said "eleven tasks", but the atlas has nine real-data tasks; corrected in both papers.
 - In the companion knowability paper, two sentences overstated the earnings result and one misattributed earthquake skill to location; both corrected.
