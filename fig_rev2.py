@@ -146,8 +146,61 @@ def fig_qvc_rev():
     save(fig, "fig_qvc_rev")
 
 
+def fig_illusory_rev():
+    """Illusory edge: (a) Proposition surfaces + simulation, (b) simulated panels, (c) earnings forest plot in which every
+    estimate is labelled by its population (removed rows, fixed cohort, paired change, audit population)."""
+    rows = J("noise_sim")
+    fig = plt.figure(figsize=(COL2, 2.6))
+    ax = fig.add_subplot(1, 3, 1, projection="3d")
+    P, M = np.meshgrid(np.linspace(0, 0.3, 40), np.linspace(0.52, 0.95, 40), indexing="ij")
+    valid = (1 - P) * M > 0.5
+    meas = np.where(valid, P, np.nan); true = np.where(valid, -P * (2 * M - 1), np.nan)
+    ax.plot_surface(P, M, meas, color="#f0a35e", alpha=0.8, linewidth=0, shade=False)
+    ax.plot_surface(P, M, true, color="#5dade2", alpha=0.85, linewidth=0, shade=False)
+    ax.plot_surface(P, M, 0 * P, color="k", alpha=0.07, linewidth=0)
+    sim = [r for r in rows if r["mode"] == "persistent" and r["r"] == 1.0 and r["T"] == 32 and r["conc"] > 1e8 and (1 - r["pi"]) * r["m"] > 0.5]
+    ax.scatter([r["pi"] for r in sim], [r["m"] for r in sim], [r["meas"] for r in sim], color="#a04000", s=6, depthshade=False)
+    ax.scatter([r["pi"] for r in sim], [r["m"] for r in sim], [r["true"] for r in sim], color="#1b3a6b", s=6, depthshade=False)
+    ax.set_xlabel(r"corrupted share $\omega$", labelpad=-4); ax.set_ylabel(r"true rate $m$", labelpad=-4)
+    ax.set_zlabel("edge over base rate", labelpad=-4); ax.view_init(20, -120); F.pane3d(ax)
+    ax.set_title("(a) measured (orange) vs true (blue)", pad=-4)
+    ax2 = fig.add_subplot(1, 3, 2)
+    for mode, col, lab in [("persistent", "#e67e22", "persistent noise"), ("independent", "#2e86c1", "independent noise")]:
+        rr = [r for r in rows if r["mode"] == mode and r["pi"] > 0]
+        ax2.scatter([r["true"] for r in rr], [r["meas"] for r in rr], s=4, color=col, alpha=0.6, label=lab, linewidths=0)
+    ax2.plot([-0.15, 0.22], [-0.15, 0.22], "k-", lw=0.5); ax2.axhline(0, color="k", lw=0.3); ax2.axvline(0, color="k", lw=0.3)
+    ax2.fill_between([-0.15, 0], 0, 0.22, color="#e74c3c", alpha=0.07)
+    ax2.text(-0.145, 0.19, "measured > 0 > true", fontsize=6.5, color="#922b21")
+    ax2.set_xlabel("true edge"); ax2.set_ylabel("measured edge"); ax2.legend(loc="lower right"); ax2.set_title("(b) 9,360 simulated panels")
+    ax3 = fig.add_subplot(1, 3, 3)
+    r = J("rev2_analyses"); ec, au = r["earnings_cohort"], r["audit"]; s1 = au["scenarios"]["exclude_unverifiable"]
+    acc = au["accounting"]
+    items = [
+        (f"removed rows (n={ec['removed_rows']})\noriginal labels", 100 * ec["removed_rows_edge_archived_original_labels"], None, "#e67e22"),
+        (f"fixed cohort (n={ec['fixed_cohort_rows']})\narchived model", 100 * ec["A_archived_before_sweep_on_cohort"], [100 * x for x in ec["A_ci"]], "#1b3a6b"),
+        ("fixed cohort\nretrained on cleaned", 100 * ec["B_after_sweep_retrained_on_cohort"], [100 * x for x in ec["B_ci"]], "#1b3a6b"),
+        ("paired change\n(retrained $-$ archived)", 100 * ec["B_minus_A_paired"], [100 * x for x in ec["B_minus_A_ci"]], "#6c3483"),
+        (f"audit population (n={acc['n_population_rows']})\nmeasured; 95% lower bound", 100 * au["delta_measured_weighted"], None, "#117a65"),
+    ]
+    ys = np.arange(len(items))[::-1]
+    for yi, (lab, v, ci, col) in zip(ys, items):
+        if ci:
+            ax3.plot(ci, [yi, yi], color=col, lw=1.3)
+        ax3.plot(v, yi, "o", color=col, ms=3.5)
+    lb = 100 * s1["delta_lower_weighted_hyper"]
+    ax3.annotate("", xy=(lb, ys[-1]), xytext=(100 * au["delta_measured_weighted"], ys[-1]),
+                 arrowprops=dict(arrowstyle="-[", color="#117a65", lw=1.1))
+    ax3.axhline(ys[-1] + 0.5, color="grey", lw=0.4, ls=":")
+    ax3.axvline(0, color="k", lw=0.5)
+    ax3.set_yticks(ys); ax3.set_yticklabels([it[0] for it in items], fontsize=5.4)
+    ax3.set_xlabel("EB edge over base rate (points)"); ax3.set_xlim(-9, 23)
+    ax3.set_title("(c) earnings: estimates by population")
+    fig.subplots_adjust(left=0.02, right=0.99, wspace=0.62, bottom=0.17, top=0.9)
+    save(fig, "fig_illusory")
+
+
 if __name__ == "__main__":
-    for f in (fig_law3, fig_atlas_rev, fig_drift_heat, fig_qvc_rev):
+    for f in (fig_law3, fig_atlas_rev, fig_drift_heat, fig_qvc_rev, fig_illusory_rev):
         try:
             f()
         except Exception as e:

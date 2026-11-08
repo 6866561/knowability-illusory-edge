@@ -78,13 +78,20 @@ mac("ecRows", ec["fixed_cohort_rows"], "{:d}"); mac("ecTick", ec["fixed_cohort_t
 mac("ecA", 100 * ec["A_archived_before_sweep_on_cohort"], "{:+.2f}"); mac("ecAlo", 100 * ec["A_ci"][0], "{:+.2f}"); mac("ecAhi", 100 * ec["A_ci"][1], "{:+.2f}")
 mac("ecB", 100 * ec["B_after_sweep_retrained_on_cohort"], "{:+.2f}"); mac("ecBlo", 100 * ec["B_ci"][0], "{:+.2f}"); mac("ecBhi", 100 * ec["B_ci"][1], "{:+.2f}")
 mac("ecRem", ec["removed_rows"], "{:d}"); mac("ecRemEdge", 100 * ec["removed_rows_edge_archived_original_labels"], "{:+.1f}")
+mac("ecDiff", 100 * ec["B_minus_A_paired"], "{:+.2f}"); mac("ecDifflo", 100 * ec["B_minus_A_ci"][0], "{:+.2f}"); mac("ecDiffhi", 100 * ec["B_minus_A_ci"][1], "{:+.2f}")
+acc_ = au["accounting"]
+mac("auComb", acc_["n_combined_rows"], "{:d}"); mac("auAudOld", acc_["n_audited20_rows"], "{:d}"); mac("auPop", acc_["n_population_rows"], "{:d}")
+mac("auIss", acc_["n_population_issuers"], "{:d}"); mac("auW", acc_["W_total"], "{:.0f}"); mac("auWD", acc_["W_D"], "{:.1f}")
+mac("auWmin", acc_["w_min"], "{:.3f}"); mac("auPDu", au["P_D_unweighted"], "{:.3f}")
+mac("auWtopA", s1["W_top_KU"], "{:.1f}"); mac("auWtopB", s2["W_top_KU"], "{:.1f}")
+mac("auEa", s1["e"], "{:d}"); mac("auNa", s1["n"], "{:d}"); mac("auEb", s2["e"], "{:d}"); mac("auNb", s2["n"], "{:d}")
 lv = r["readout"]["live"]
 for q, v in lv.items():
     mac(f"ro{'A' if q == '5' else 'B'}", v["A_opt"], "{:.4f}"); mac(f"ro{'A' if q == '5' else 'B'}lo", v["A_opt_ci"][0], "{:.4f}"); mac(f"ro{'A' if q == '5' else 'B'}hi", v["A_opt_ci"][1], "{:.4f}")
     mac(f"ro{'A' if q == '5' else 'B'}ez", v["e0"], "{:.4f}"); mac(f"ro{'A' if q == '5' else 'B'}eo", v["e1"], "{:.4f}"); mac(f"ro{'A' if q == '5' else 'B'}k", v["kappa"], "{:.3f}")
 mac("roFormulaDiff", r["readout"]["noise_models_max_abs_diff_formula_vs_opt"], "{:.1e}")
 for k, v in r["time_block"].items():
-    t = {"d4_weather": "wx", "d4_weather_nwp": "nwp", "d5_football": "fb", "d6_house": "hs", "d6_president": "pr", "d8_stocks": "st", "d9_quakes": "eq"}[k]
+    t = {"d4_weather": "wx", "d4_weather_nwp": "nwp", "d5_football": "fb", "d6_house": "hs", "d6_president": "pr", "d8_stocks": "st", "d9_quakes": "eq", "d7_earnings": "ed"}[k]
     mac(t + "TBlo", v["LSS_ci_time_block"][0], "{:.4f}" if abs(v["LSS"]) < 0.01 else "{:.3f}"); mac(t + "TBhi", v["LSS_ci_time_block"][1], "{:.4f}" if abs(v["LSS"]) < 0.01 else "{:.3f}")
     mac(t + "TBn", v["n_blocks"], "{:d}")
 
@@ -130,3 +137,24 @@ for _t in ("tab_atlas.tex", "tab_controls.tex", "tab_law3.tex", "tab_quantum_rev
         _s2 = _re.sub(r"(?<=& )-(0\.0+)(?= &)", r"\1", _s)   # standalone cells only; CI endpoints keep their sign
         if _s2 != _s:
             _p.write_text(_s2, encoding="utf-8"); print("normalised -0 in", _t)
+
+# atlas table with a time-block interval column (derived file; tab_atlas.tex itself is left unchanged)
+_tbmap = {"Rain tomorrow (+NWP)": "d4_weather_nwp", "President by state": "d6_president", "US House seats": "d6_house",
+          "Football (+odds)": "d5_football", "Earnings guidance": "d7_earnings", "Rain tomorrow": "d4_weather",
+          "Earthquakes (week, cell)": "d9_quakes", "Stock direction": "d8_stocks"}
+_tb = r["time_block"]
+_rows = []
+for _line in (GEN / "tab_atlas.tex").read_text(encoding="utf-8").splitlines():
+    _cells = _line.split(" & ")
+    _name = _cells[0].strip()
+    if _name in _tbmap and _tbmap[_name] in _tb:
+        _v = _tb[_tbmap[_name]]; _f = "{:.4f}" if abs(_v["LSS"]) < 0.01 else "{:.3f}"
+        _ins = "[" + _f.format(_v["LSS_ci_time_block"][0]) + ", " + _f.format(_v["LSS_ci_time_block"][1]) + "]"
+    elif _name.startswith("Bad qubit"):
+        _ins = "qubit only$^\S$"
+    else:
+        _ins = "--"
+    _cells.insert(6, _ins)
+    _rows.append(" & ".join(_cells))
+(GEN / "tab_atlas_tb.tex").write_text("\n".join(_rows), encoding="utf-8")
+print("tab_atlas_tb written")

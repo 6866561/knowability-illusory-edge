@@ -45,9 +45,15 @@ for name, e, n in [("exclude_unverifiable", int((aud.verdict == "wrong").sum()),
     wD = np.sort(w[D])[::-1]
     worst_w = float(wD[:K_U].sum() / w.sum())          # heaviest K_U rows wrong (weighted worst case)
     scen[name] = {"e": e, "n": n, "N_D": N_D, "K_U_hypergeom": K_U, "rho_U_hypergeom": K_U / N_D, "rho_U_clopper_pearson": cp,
+                  "W_top_KU": float(wD[:K_U].sum()),
                   "delta_lower_unweighted_hyper": delta - 2 * PD_u * K_U / N_D if False else None,
                   "delta_lower_weighted_hyper": delta - 2 * worst_w, "delta_lower_cp_PDw": delta - 2 * PD_w * cp}
 OUT["audit"] = {"N_D_rows": N_D, "P_D_weighted": PD_w, "P_D_unweighted": PD_u, "delta_measured_weighted": delta,
+                "accounting": {"n_combined_rows": len(d7), "n_audited20_rows": int((d7["src"] == "audited20").sum()),
+                               "n_population_rows": len(hv), "n_population_issuers": int(hv["entity"].nunique()),
+                               "W_total": float(w.sum()), "W_D": float(w[D].sum()), "w_min": float(w.min()), "w_max": float(w.max()),
+                               "weight_definition": "1 / (number of rows forecasting the same outcome group); each outcome group carries total weight 1",
+                               "population": "harvested (src=new) rows of the cleaned combined universe; the 340 previously hand-audited rows are excluded"},
                 "sampling": "40 rows drawn uniformly without replacement from the 82 disagreement rows (numpy RandomState(20261106).choice(82, 40)); one unverifiable",
                 "scenarios": scen,
                 "note": "bound concerns the fixed finite population of harvested disagreement rows (labels as evaluated), not future predictive edge"}
@@ -83,6 +89,8 @@ OUT["earnings_cohort"] = {
     "A_ci": boot(coh, lambda d: edge(d, "before", "weight_before")),
     "B_after_sweep_retrained_on_cohort": edge(coh, "after", "weight_before"),
     "B_ci": boot(coh, lambda d: edge(d, "after", "weight_before")),
+    "B_minus_A_paired": edge(coh, "after", "weight_before") - edge(coh, "before", "weight_before"),
+    "B_minus_A_ci": boot(coh, lambda d: edge(d, "after", "weight_before") - edge(d, "before", "weight_before")),
     "removed_rows": len(rem), "removed_rows_edge_archived_original_labels": edge(rem, "before", "weight_before"),
     "removed_by_counts": rem.removed_by.value_counts().to_dict(),
     "note": ("Cohort = rows scored in both sweeps and not removed: labels identical, so A vs B isolates the effect of "
@@ -149,6 +157,14 @@ for name, (freq, col) in blocks.items():
     bsv = core.cluster_bootstrap(g, lambda idx: 1 - core.log_loss(yy[idx], pm[idx]) / core.log_loss(yy[idx], p0[idx]), reps=1000)
     tb[name] = {"model": col, "block": freq, "n_blocks": len(g), "LSS": 1 - core.log_loss(yy, pm) / core.log_loss(yy, p0),
                 "LSS_ci_time_block": np.percentile(bsv, [2.5, 97.5]).tolist()}
+# earnings (combined universe; combo model vs point-in-time frequency base rate; outcome-group weights), calendar-quarter blocks
+_d = d7.copy()
+_d["blk"] = pd.to_datetime(_d["decision_time"]).dt.to_period("Q").astype(str)
+_y, _w, _pm, _p0 = _d["y"].to_numpy().astype(int), _d["weight"].to_numpy(), _d["combo"].to_numpy(), _d["freq"].to_numpy()
+_g = {k: np.asarray(v) for k, v in _d.groupby("blk").indices.items()}
+_bs = core.cluster_bootstrap(_g, lambda idx: 1 - core.log_loss(_y[idx], _pm[idx], _w[idx]) / core.log_loss(_y[idx], _p0[idx], _w[idx]), reps=1000)
+tb["d7_earnings"] = {"model": "combo", "block": "Q", "n_blocks": len(_g), "LSS": 1 - core.log_loss(_y, _pm, _w) / core.log_loss(_y, _p0, _w),
+                     "LSS_ci_time_block": np.percentile(_bs, [2.5, 97.5]).tolist()}
 OUT["time_block"] = tb
 (RES / "rev2_analyses.json").write_text(json.dumps(OUT, indent=1, default=float))
 print(json.dumps({"audit": OUT["audit"]["scenarios"], "power": round(OUT["power"]["n_required"]), "cohort": {k: v for k, v in OUT["earnings_cohort"].items() if k != "note"},
