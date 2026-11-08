@@ -31,7 +31,7 @@ A classifier trained on $S_n$ satisfies the lemma conditionally on $S_n$ when th
 \begin{equation*}
 \LSS=1-\frac{\E\ell(\hat p)}{\E\ell(p_0)}=1-\frac{H(Y\mid X)+\E\,\KL(\eta\Vert\hat p)}{H(Y\mid \F_0)+\E\,\KL(\eta_0\Vert p_0)},
 \end{equation*}
-with $\eta_0=P(Y=1\mid\F_0)$. LSS therefore mixes the information gap $H(Y\mid\F_0)-H(Y\mid X)$ with the misspecification, estimation, calibration and drift losses $\E\,\KL$ of both forecasts; a small LSS does not imply a small $\kappa$, and LSS exceeds $1-H(Y\mid X)/H(Y\mid\F_0)$ whenever the baseline's divergence term is large. These are population (ratio-of-expectations) quantities. The empirical LSS is a ratio of test-set averages; it converges to the population ratio as the test set grows, but its finite-sample expectation generally differs from it.
+with $\eta_0=P(Y=1\mid\F_0)$. LSS therefore mixes the information gap $H(Y\mid\F_0)-H(Y\mid X)$ with the misspecification, estimation, calibration and drift losses $\E\,\KL$ of both forecasts; a small LSS does not imply a small $\kappa$, and LSS exceeds $1-H(Y\mid X)/H(Y\mid\F_0)$ whenever the baseline's divergence term is large. These are population (ratio-of-expectations) quantities. The empirical LSS is a ratio of test-set averages. It converges to the population ratio when test examples are i.i.d.\ draws from a fixed distribution, or under stationarity and ergodicity with a fixed forecast, but not in general under drift or strong dependence; its finite-sample expectation generally differs from the population ratio.
 
 \subsection{Closed forms}
 \begin{proposition}[Qubit]\label{prop:appqubit}
@@ -46,7 +46,7 @@ $p'-\tfrac12=a-\tfrac\beta2\cos\theta$, and for $\theta\sim U(0,\pi)$, $\E|a-b\c
 \end{proof}
 
 \begin{proposition}[Beta-binomial entity model]\label{prop:appbeta}
-Assume exchangeable entities with rates $p_i\sim\mathrm{Beta}(\alpha,\beta)$, known hyperparameters, and outcomes conditionally i.i.d.\ Bernoulli$(p_i)$, and entity sample sizes independent of the rates (noninformative weighting), so that weighting entities by their number of outcomes leaves the rate distribution of the weighted population equal to $\mathrm{Beta}(\alpha,\beta)$; if sample sizes depend on the rates, the statements hold with $\mathrm{Beta}(\alpha,\beta)$ replaced by the rate law of the outcome-weighted population. Then the oracle-rate accuracy is $A_1^*=\E[\max(p,1-p)]$ and its conditional entropy is $\E[H_2(p)]$, with $p\sim\mathrm{Beta}(\alpha,\beta)$. After a history of $n$ outcomes with $k$ successes the predictive probability is $m_k=(\alpha+k)/(\alpha+\beta+n)$, and the finite-history Bayes accuracy is
+Assume exchangeable entities with rates $p_i\sim\mathrm{Beta}(\alpha,\beta)$, known hyperparameters, and outcomes conditionally i.i.d.\ Bernoulli$(p_i)$, and entity sample sizes independent of the rates (noninformative weighting), so that weighting entities by their number of outcomes leaves the rate distribution of the weighted population equal to $\mathrm{Beta}(\alpha,\beta)$. Then the oracle-rate accuracy is $A_1^*=\E[\max(p,1-p)]$ and its conditional entropy is $\E[H_2(p)]$, with $p\sim\mathrm{Beta}(\alpha,\beta)$. After a history of $n$ outcomes with $k$ successes the predictive probability is $m_k=(\alpha+k)/(\alpha+\beta+n)$, and the finite-history Bayes accuracy is
 \[
 A_1^*(n)=\sum_{k=0}^{n}\binom{n}{k}\frac{B(\alpha+k,\beta+n-k)}{B(\alpha,\beta)}\max(m_k,1-m_k).
 \]
@@ -55,6 +55,8 @@ $A_1^*(n)$ is nondecreasing in $n$ and converges to $A_1^*$.
 \begin{proof}
 The closed forms follow from Beta--Bernoulli conjugacy: the posterior after $(n,k)$ is $\mathrm{Beta}(\alpha+k,\beta+n-k)$ and $k$ is beta-binomial. Monotonicity holds because the history of length $n$ is a function of the history of length $n+1$, so the Bayes accuracy of the larger $\sigma$-algebra is at least as large; convergence follows from posterior consistency for each $p_i\neq\tfrac12$ and dominated convergence.
 \end{proof}
+\emph{General rate law.} If sample sizes depend on the rates, the outcome-weighted population has some rate law $G$ that need not be Beta, and the conjugate formulas above no longer apply. The oracle quantities remain $A_1^*=\E_G[\max(p,1-p)]$ and $\E_G[H_2(p)]$, but the predictive probability must be derived from $G$: $m_k=\int p^{k+1}(1-p)^{n-k}\,dG(p)\big/\int p^{k}(1-p)^{n-k}\,dG(p)$, and $A_1^*(n)=\sum_{k}\binom nk\int p^k(1-p)^{n-k}\,dG(p)\,\max(m_k,1-m_k)$. Monotonicity in $n$ holds by the same argument, and convergence to $A_1^*$ follows from martingale convergence of $m_k$ to $p$.
+
 Applied to real data, $(\alpha,\beta)$ are method-of-moments estimates and the model is an approximation; the resulting ceilings are model-based, not identified upper bounds.
 
 \subsection{Label noise}

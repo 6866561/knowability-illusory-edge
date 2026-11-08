@@ -173,14 +173,14 @@ def fig_illusory_rev():
     ax2.text(-0.145, 0.19, "measured > 0 > true", fontsize=6.5, color="#922b21")
     ax2.set_xlabel("true edge"); ax2.set_ylabel("measured edge"); ax2.legend(loc="lower right"); ax2.set_title("(b) 9,360 simulated panels")
     ax3 = fig.add_subplot(1, 3, 3)
-    r = J("rev2_analyses"); ec, au = r["earnings_cohort"], r["audit"]; s1 = au["scenarios"]["exclude_unverifiable"]
+    r = J("rev2_analyses"); ec, au = r["earnings_cohort"], r["audit"]; s1 = au["scenarios"]["unverifiable_as_wrong"]   # primary, conservative: unverifiable row counted as wrong
     acc = au["accounting"]
     items = [
         (f"removed rows (n={ec['removed_rows']})\noriginal labels", 100 * ec["removed_rows_edge_archived_original_labels"], None, "#e67e22"),
         (f"fixed cohort (n={ec['fixed_cohort_rows']})\narchived model", 100 * ec["A_archived_before_sweep_on_cohort"], [100 * x for x in ec["A_ci"]], "#1b3a6b"),
         ("fixed cohort\nretrained on cleaned", 100 * ec["B_after_sweep_retrained_on_cohort"], [100 * x for x in ec["B_ci"]], "#1b3a6b"),
         ("paired change\n(retrained $-$ archived)", 100 * ec["B_minus_A_paired"], [100 * x for x in ec["B_minus_A_ci"]], "#6c3483"),
-        (f"audit population (n={acc['n_population_rows']})\nmeasured; 95% lower bound", 100 * au["delta_measured_weighted"], None, "#117a65"),
+        (f"audit population (n={acc['n_population_rows']})\nmeasured; 95% lower bound\n(unverifiable counted wrong)", 100 * au["delta_measured_weighted"], None, "#117a65"),
     ]
     ys = np.arange(len(items))[::-1]
     for yi, (lab, v, ci, col) in zip(ys, items):

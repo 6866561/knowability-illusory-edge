@@ -73,6 +73,7 @@ mac("auLBwHa", 100 * s1["delta_lower_weighted_hyper"], "{:+.2f}"); mac("auLBcpa"
 mac("auKUb", s2["K_U_hypergeom"], "{:d}"); mac("auRhoHb", s2["rho_U_hypergeom"]); mac("auLBwHb", 100 * s2["delta_lower_weighted_hyper"], "{:+.2f}")
 mac("auLBcpb", 100 * s2["delta_lower_cp_PDw"], "{:+.2f}")
 mac("pwN", r["power"]["n_required"], "{:,.0f}"); mac("pwNde", r["power"]["n_required_design_effect_2"], "{:,.0f}")
+mac("pwGroups", r["power"]["n_outcome_groups_available"], "{:d}"); mac("pwIss", r["power"]["n_issuers_available"], "{:d}")
 ec = r["earnings_cohort"]
 mac("ecRows", ec["fixed_cohort_rows"], "{:d}"); mac("ecTick", ec["fixed_cohort_tickers"], "{:d}")
 mac("ecA", 100 * ec["A_archived_before_sweep_on_cohort"], "{:+.2f}"); mac("ecAlo", 100 * ec["A_ci"][0], "{:+.2f}"); mac("ecAhi", 100 * ec["A_ci"][1], "{:+.2f}")

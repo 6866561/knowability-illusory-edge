@@ -63,6 +63,8 @@ z = stats.norm.ppf(0.975) + stats.norm.ppf(0.8)
 OUT["power"] = {"formula": "n = (z_{1-a/2}+z_{1-b})^2 * P(D) / delta^2 (McNemar, independent forecasts)",
                 "alpha_two_sided": 0.05, "power": 0.8, "delta": 0.01, "P_D": PD_w, "n_required": z ** 2 * PD_w / 0.01 ** 2,
                 "n_required_design_effect_2": 2 * z ** 2 * PD_w / 0.01 ** 2, "n_available": len(d7),
+                "n_outcome_groups_available": int(d7["outcome_group"].nunique()), "n_issuers_available": int(d7["entity"].nunique()),
+                "approximation": "equal-weight, independent-outcome McNemar approximation; not justified for weighted, repeated forecast rows",
                 "note": "independence across forecasts assumed; clustering by issuer and fiscal period raises the requirement by the design effect"}
 
 # ---------------------------------------------------------------- 3. earnings fixed cohort
