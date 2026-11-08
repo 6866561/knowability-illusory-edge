@@ -82,6 +82,8 @@ for _, r in d.iterrows():
     rows.append(rec)
 
 o = pd.DataFrame(rows)
+if "guid_flags" not in o:
+    o["guid_flags"] = ""   # press-release texts absent (e.g. clean clone): guidance screen not run
 o.to_csv(DATA / "d7_audit_crosscheck.csv", index=False)
 summ = {"n": len(o), "eps_status": o.eps_status.value_counts().to_dict(), "guid_status": o.guid_status.value_counts().to_dict(),
         "eps_by_ai_verdict": {f"{a}|{b}": int(v) for (a, b), v in o.groupby(["ai_verdict", "eps_status"]).size().items()},
@@ -114,7 +116,7 @@ def k_upper(N, n, e, alpha=0.05):
 wD = np.sort(w[D])[::-1]
 smp_w = smp.set_index("row_id")["weight"]
 unaud = np.sort(smp.loc[~smp.row_id.isin(o.row_id), "weight"].to_numpy())[::-1]
-flag_guid = set(o.loc[(o.ai_verdict == "correct") & (o.guid_status != "range_found_gaap_diluted"), "row_id"])
+flag_guid = set(o.loc[(o.ai_verdict == "correct") & (o.guid_status == "range_found_flagged"), "row_id"])   # only rows the screen actually flagged
 eps_unchk = set(o.loc[o.eps_status != "match", "row_id"])
 bad_base = set(o.loc[o.ai_verdict != "correct", "row_id"])
 sens = {}

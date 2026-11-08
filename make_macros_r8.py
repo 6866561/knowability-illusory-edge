@@ -35,6 +35,12 @@ if cs:
             for meth, mt in (("two_way", "Tw"), ("entity_only", "En"), ("time_only", "Ti")):
                 M[f"cov{t}{mt}"] = f"{100 * A[k][meth]['coverage']:.1f}"
     M["covSE"] = f"{100 * max(v['two_way']['mc_se'] for v in A.values()):.1f}"
+    M["covSEall"] = f"{100 * max(v[m]['mc_se'] for v in A.values() for m in ('two_way', 'entity_only', 'time_only')):.1f}"
+    M["covTwMin"] = f"{100 * min(v['two_way']['coverage'] for v in A.values()):.1f}"
+    M["covOneMin"] = f"{100 * min(min(v['entity_only']['coverage'], v['time_only']['coverage']) for v in A.values()):.1f}"
+    M["covOneMax"] = f"{100 * max(max(v['entity_only']['coverage'], v['time_only']['coverage']) for v in A.values()):.1f}"
+    rat = [v["two_way"]["median_width"] / v["entity_only"]["median_width"] for v in A.values()]
+    M["covWlo"] = f"{min(rat):.1f}"; M["covWhi"] = f"{max(rat):.1f}"
     M["covSims"] = f"{cs['settings']['sims_A']:,}"; M["covReps"] = str(cs["settings"]["bootstrap_reps"])
     B = cs["part_B_audit"]
     M["covExactMin"] = f"{100 * B['exact_hypergeometric_min_coverage']:.1f}"

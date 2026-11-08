@@ -16,7 +16,9 @@ ROOT = pathlib.Path(__file__).resolve().parent; K = ROOT.parent
 import sys as _sys; _sys.path.insert(0, str(ROOT)); from kn.paths import DATA, RAW
 sys.path.insert(0, str(ROOT))
 import figs as F
-F.OUT = K / "paper_rev" / "figs"
+_fig_dir = K / "paper_rev" / "figs" if (K / "paper_rev").exists() else ROOT / "results" / "figs"   # clean clone: results/figs
+_fig_dir.mkdir(parents=True, exist_ok=True)
+F.OUT = _fig_dir
 from figs import save, COL1
 
 b = pd.read_parquet(DATA / "d7_before_after.parquet")
@@ -71,7 +73,7 @@ ax.barh(yy - 0.18, t.edge_pts_invalid, height=0.36, color="#e67e22", label="rows
 ax.barh(yy + 0.18, t.edge_pts_valid, height=0.36, color="#1b3a6b", label="valid rows")
 for yi, (n_inv, n_per) in zip(yy, zip(t.invalid_rows, t.invalid_periods)):
     ax.text(ax.get_xlim()[1] if False else 0, yi, "", fontsize=5)
-ax.set_yticks(yy); ax.set_yticklabels([f"{e} ({int(r)} invalid, {int(p)} periods)" for e, r, p in zip(t.index, t.invalid_rows, t.invalid_periods)], fontsize=5.6)
+ax.set_yticks(yy); ax.set_yticklabels([f"{e} ({int(r)} invalid, {int(p)} period{'s' if int(p) != 1 else ''})" for e, r, p in zip(t.index, t.invalid_rows, t.invalid_periods)], fontsize=5.6)
 ax.axvline(0, color="k", lw=0.5)
 ax.set_xlabel("contribution to pooled EB edge (points)")
 ax.legend(fontsize=5.6, loc="lower right")
