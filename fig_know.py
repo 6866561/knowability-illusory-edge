@@ -84,6 +84,11 @@ def macros():
     M["kLZpi"] = f"{lz['Pi_max_LZ']:.3f}"; M["kLZlearn"] = f"{lz['learned_next_symbol_acc']:.3f}"; M["kLZbase"] = f"{lz['base']:.3f}"
     dep = c["D1"]["depolarizing"]
     M["kDepTwo"] = f"{[d for d in dep if d['lambda'] == 0.2][0]['A_star']:.3f}"
+    qm = J("qubit_modelterm")["summary"]
+    M["kHcond"] = f"{2 * math.log(2) - 1:.3f}"
+    M["kMtOneK"] = f"{qm['1000']['model_term_KL_mean']:.3f}"; M["kMtTenK"] = f"{qm['10000']['model_term_KL_mean']:.3f}"
+    M["kMtHundredK"] = f"{qm['100000']['model_term_KL_mean']:.5f}"; M["kMtHundredKhi"] = f"{qm['100000']['model_term_KL_max_ci_hi']:.5f}"
+    M["kMtShare"] = f"{100 * qm['100000']['share_of_H_cond']:.2f}"
     (GEN / "macros_know.tex").write_text("\n".join("\\newcommand{\\" + k + "}{" + v + "}" for k, v in M.items()) + "\n", encoding="utf-8")
     print(M)
 

@@ -48,6 +48,17 @@ for name, e, n in [("exclude_unverifiable", int((aud.verdict == "wrong").sum()),
                   "W_top_KU": float(wD[:K_U].sum()),
                   "delta_lower_unweighted_hyper": delta - 2 * PD_u * K_U / N_D if False else None,
                   "delta_lower_weighted_hyper": delta - 2 * worst_w, "delta_lower_cp_PDw": delta - 2 * PD_w * cp}
+# tightened worst case: rows verified correct cannot be wrong; sampled problem rows count with their own weights;
+# the remaining K_U - (sample errors) possible errors go on the heaviest UNAUDITED disagreement rows.
+_samp = pd.read_csv(DATA / "d7_harvested_audit_sample.csv")
+_aud = aud.merge(_samp.reset_index().rename(columns={"index": "row_id"})[["row_id", "weight"]], on="row_id")
+assert len(_aud) == len(aud)
+_unaud = np.sort(_samp.loc[~_samp.index.isin(aud.row_id), "weight"].to_numpy())[::-1]
+for name, bad in [("exclude_unverifiable", ["wrong"]), ("unverifiable_as_wrong", ["wrong", "unverifiable"])]:
+    sc = scen[name]; w_bad = float(_aud.loc[_aud.verdict.isin(bad), "weight"].sum()); n_bad = int(_aud.verdict.isin(bad).sum())
+    w_rest = float(_unaud[:max(sc["K_U_hypergeom"] - n_bad, 0)].sum())
+    sc["tight"] = {"w_sample_problem_rows": w_bad, "n_sample_problem_rows": n_bad, "n_unaudited": int(len(_unaud)),
+                   "w_top_unaudited": w_rest, "delta_lower_weighted_hyper_tight": delta - 2 * (w_bad + w_rest) / float(w.sum())}
 OUT["audit"] = {"N_D_rows": N_D, "P_D_weighted": PD_w, "P_D_unweighted": PD_u, "delta_measured_weighted": delta,
                 "accounting": {"n_combined_rows": len(d7), "n_audited20_rows": int((d7["src"] == "audited20").sum()),
                                "n_population_rows": len(hv), "n_population_issuers": int(hv["entity"].nunique()),

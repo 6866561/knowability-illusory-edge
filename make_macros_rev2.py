@@ -85,6 +85,9 @@ mac("auComb", acc_["n_combined_rows"], "{:d}"); mac("auAudOld", acc_["n_audited2
 mac("auIss", acc_["n_population_issuers"], "{:d}"); mac("auW", acc_["W_total"], "{:.0f}"); mac("auWD", acc_["W_D"], "{:.1f}")
 mac("auWmin", acc_["w_min"], "{:.3f}"); mac("auPDu", au["P_D_unweighted"], "{:.3f}")
 mac("auWtopA", s1["W_top_KU"], "{:.1f}"); mac("auWtopB", s2["W_top_KU"], "{:.1f}")
+mac("auTightB", 100 * s2["tight"]["delta_lower_weighted_hyper_tight"], "{:+.2f}"); mac("auTightA", 100 * s1["tight"]["delta_lower_weighted_hyper_tight"], "{:+.2f}")
+mac("auTightWb", s2["tight"]["w_sample_problem_rows"], "{:.2f}"); mac("auTightTopB", s2["tight"]["w_top_unaudited"], "{:.1f}")
+mac("auTightNun", s2["tight"]["n_unaudited"], "{:d}"); mac("auTightKrest", s2["K_U_hypergeom"] - s2["tight"]["n_sample_problem_rows"], "{:d}")
 mac("auEa", s1["e"], "{:d}"); mac("auNa", s1["n"], "{:d}"); mac("auEb", s2["e"], "{:d}"); mac("auNb", s2["n"], "{:d}")
 lv = r["readout"]["live"]
 for q, v in lv.items():
