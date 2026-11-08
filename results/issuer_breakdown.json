@@ -1,0 +1,213 @@
+{
+ "summary": {
+  "rows_scored": 679,
+  "invalid_rows": 76,
+  "issuers_with_invalid": 31,
+  "issuers_total": 98,
+  "edge_total_pts": 2.876602564102564,
+  "edge_invalid_pts": 2.483974358974359,
+  "edge_valid_pts": 0.3926282051282052,
+  "top2_issuers": [
+   "PNR",
+   "TDC"
+  ],
+  "top2_invalid_rows": 18,
+  "top2_edge_invalid_pts": 1.3221153846153848,
+  "issuers_invalid_ge2_periods": 9,
+  "invalid_rows_in_issuers_ge2_periods": 50,
+  "beat_rate_invalid": 0.3815789473684211,
+  "beat_rate_valid": 0.5903814262023217,
+  "eb_matches_record_invalid": 0.631578947368421,
+  "base_matches_record_invalid": 0.3815789473684211,
+  "eb_matches_record_valid": 0.6102819237147595,
+  "base_matches_record_valid": 0.5903814262023217,
+  "persistence_issuers_ge3_invalid": [
+   {
+    "issuer": "BDC",
+    "n": 6,
+    "majority_share": 0.5
+   },
+   {
+    "issuer": "JBTM",
+    "n": 4,
+    "majority_share": 0.5
+   },
+   {
+    "issuer": "MYGN",
+    "n": 3,
+    "majority_share": 1.0
+   },
+   {
+    "issuer": "PNR",
+    "n": 15,
+    "majority_share": 0.6
+   },
+   {
+    "issuer": "TDC",
+    "n": 3,
+    "majority_share": 1.0
+   },
+   {
+    "issuer": "TFX",
+    "n": 11,
+    "majority_share": 1.0
+   },
+   {
+    "issuer": "TRMB",
+    "n": 4,
+    "majority_share": 0.75
+   },
+   {
+    "issuer": "TXT",
+    "n": 3,
+    "majority_share": 1.0
+   }
+  ]
+ },
+ "top": [
+  {
+   "entity": "PNR",
+   "rows": 24,
+   "invalid_rows": 15,
+   "invalid_periods": 11.0,
+   "reasons": "continuing_ops",
+   "beat_rate_invalid": 0.4,
+   "beat_rate_valid": 0.3333333333333333,
+   "disagreements_invalid": 14.0,
+   "edge_pts_invalid": 0.841346153846154,
+   "edge_pts_valid": 0.4807692307692307
+  },
+  {
+   "entity": "TDC",
+   "rows": 22,
+   "invalid_rows": 3,
+   "invalid_periods": 2.0,
+   "reasons": "scale_check",
+   "beat_rate_invalid": 0.0,
+   "beat_rate_valid": 0.7894736842105263,
+   "disagreements_invalid": 3.0,
+   "edge_pts_invalid": 0.4807692307692308,
+   "edge_pts_valid": -1.0416666666666665
+  },
+  {
+   "entity": "TFX",
+   "rows": 11,
+   "invalid_rows": 11,
+   "invalid_periods": 3.0,
+   "reasons": "continuing_ops",
+   "beat_rate_invalid": 0.0,
+   "beat_rate_valid": NaN,
+   "disagreements_invalid": 9.0,
+   "edge_pts_invalid": 0.42067307692307687,
+   "edge_pts_valid": 0.0
+  },
+  {
+   "entity": "ONTO",
+   "rows": 16,
+   "invalid_rows": 1,
+   "invalid_periods": 1.0,
+   "reasons": "quarter_ordinal",
+   "beat_rate_invalid": 0.0,
+   "beat_rate_valid": 0.4666666666666667,
+   "disagreements_invalid": 1.0,
+   "edge_pts_invalid": 0.2403846153846154,
+   "edge_pts_valid": 0.0
+  },
+  {
+   "entity": "TYL",
+   "rows": 12,
+   "invalid_rows": 1,
+   "invalid_periods": 1.0,
+   "reasons": "scale_check",
+   "beat_rate_invalid": 0.0,
+   "beat_rate_valid": 0.36363636363636365,
+   "disagreements_invalid": 1.0,
+   "edge_pts_invalid": 0.2403846153846154,
+   "edge_pts_valid": 0.24038461538461536
+  },
+  {
+   "entity": "SWK",
+   "rows": 3,
+   "invalid_rows": 1,
+   "invalid_periods": 1.0,
+   "reasons": "scale_check",
+   "beat_rate_invalid": 0.0,
+   "beat_rate_valid": 0.5,
+   "disagreements_invalid": 1.0,
+   "edge_pts_invalid": 0.2403846153846154,
+   "edge_pts_valid": 0.0
+  },
+  {
+   "entity": "JBTM",
+   "rows": 4,
+   "invalid_rows": 4,
+   "invalid_periods": 2.0,
+   "reasons": "continuing_ops;scale_check",
+   "beat_rate_invalid": 0.5,
+   "beat_rate_valid": NaN,
+   "disagreements_invalid": 1.0,
+   "edge_pts_invalid": 0.08012820512820512,
+   "edge_pts_valid": 0.0
+  },
+  {
+   "entity": "ACN",
+   "rows": 12,
+   "invalid_rows": 0,
+   "invalid_periods": 0.0,
+   "reasons": "",
+   "beat_rate_invalid": NaN,
+   "beat_rate_valid": 0.4166666666666667,
+   "disagreements_invalid": 0.0,
+   "edge_pts_invalid": 0.0,
+   "edge_pts_valid": 0.060096153846153834
+  },
+  {
+   "entity": "BDC",
+   "rows": 20,
+   "invalid_rows": 6,
+   "invalid_periods": 4.0,
+   "reasons": "quarter_ordinal;scale_check",
+   "beat_rate_invalid": 0.5,
+   "beat_rate_valid": 0.8571428571428571,
+   "disagreements_invalid": 0.0,
+   "edge_pts_invalid": 0.0,
+   "edge_pts_valid": 0.0
+  },
+  {
+   "entity": "BHE",
+   "rows": 2,
+   "invalid_rows": 2,
+   "invalid_periods": 1.0,
+   "reasons": "scale_check",
+   "beat_rate_invalid": 1.0,
+   "beat_rate_valid": NaN,
+   "disagreements_invalid": 0.0,
+   "edge_pts_invalid": 0.0,
+   "edge_pts_valid": 0.0
+  },
+  {
+   "entity": "BLMN",
+   "rows": 2,
+   "invalid_rows": 1,
+   "invalid_periods": 1.0,
+   "reasons": "scale_check",
+   "beat_rate_invalid": 1.0,
+   "beat_rate_valid": 0.0,
+   "disagreements_invalid": 0.0,
+   "edge_pts_invalid": 0.0,
+   "edge_pts_valid": 0.0
+  },
+  {
+   "entity": "AEE",
+   "rows": 2,
+   "invalid_rows": 0,
+   "invalid_periods": 0.0,
+   "reasons": "",
+   "beat_rate_invalid": NaN,
+   "beat_rate_valid": 1.0,
+   "disagreements_invalid": 0.0,
+   "edge_pts_invalid": 0.0,
+   "edge_pts_valid": 0.0
+  }
+ ]
+}

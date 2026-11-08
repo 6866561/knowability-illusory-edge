@@ -77,7 +77,7 @@ def fig_law3():
 
 
 def fig_atlas_rev():
-    A = J("atlas")["rows"]; tb = J("rev2_analyses")["time_block"]
+    A = J("atlas")["rows"]; tw = J("rev2_analyses")["two_way"]
     rows = sorted(A, key=lambda r: -r["LSS"])
     fig, ax = plt.subplots(figsize=(COL2 * 0.62, 3.0))
     y = np.arange(len(rows))[::-1]
@@ -91,13 +91,16 @@ def fig_atlas_rev():
         for k in range(3):
             v = r["shares"][k]
             ax.barh(yi, v, left=left, color=cols[k], height=0.6, edgecolor="white", linewidth=0.3); left += v
-        ci = tb.get(r["name"], {}).get("LSS_ci_time_block") or r.get("LSS_ci")
-        if ci:
-            ax.plot(ci, [yi, yi], color="k", lw=0.8)
+        ci2 = tw.get(r["name"], {}).get("LSS_ci_two_way")
+        if ci2:
+            ax.plot(ci2, [yi, yi], color="k", lw=0.8)
+        elif r.get("LSS_ci"):
+            ax.plot(r["LSS_ci"], [yi, yi], color="k", lw=0.8, ls=(0, (2, 1.5)))
     for k in range(3):
         ax.barh([], [], color=cols[k], label=labs[k])
     ax.plot([], [], "D", color="#7f8c8d", ms=4, label="control: exact / reference value")
-    ax.plot([], [], "k-", lw=0.8, label="95% interval (time-block where available)")
+    ax.plot([], [], "k-", lw=0.8, label="95% two-way interval (entity x time)")
+    ax.plot([], [], "k", lw=0.8, ls=(0, (2, 1.5)), label="95% interval, qubits only (hardware)")
     ax.set_yticks(y); ax.set_yticklabels([r["label"].replace("\\_", "_") for r in rows], fontsize=6.3)
     ax.set_xlabel("achieved log-loss skill relative to the point-in-time base rate (LSS)")
     ax.axvline(0, color="k", lw=0.4); ax.set_xlim(-0.02, 1.04)

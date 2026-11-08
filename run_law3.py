@@ -192,12 +192,15 @@ def run(name, n_seeds=3):
            "settings": {"NS": NS, "LS": LS, "NTEST": NTEST, "NPART": NPART, "SIG_REL": SIG_REL, "knn_k": "ceil(sqrt(n))",
                         "posterior": "Gaussian cloud centred on observation (local flat prior)", "dt": L2.SYS[name]["dt"]},
            "seeds": seeds, "summary": summary, "secs": time.time() - t0}
-    (ROOT / "results" / f"law3_{name}.json").write_text(json.dumps(out, indent=1, default=float))
+    tag = "law3" if n_seeds == 3 else f"law3s{n_seeds}"   # many-seed runs never overwrite the 3-seed results
+    (ROOT / "results" / f"{tag}_{name}.json").write_text(json.dumps(out, indent=1, default=float))
     s5 = summary["knn"]["0.05"]; s1 = summary["1nn"]["0.05"]
     print(f"[{name}] DONE knn gamma_L={s5['gamma_mean']} sd={s5['gamma_sd']} (seeds id {s5['n_seeds_identified']}); "
           f"1nn gamma_L={s1['gamma_mean']} (id {s1['n_seeds_identified']}); D2 range {d2s['min']:.2f}-{d2s['max']:.2f}; {time.time() - t0:.0f}s", flush=True)
 
 
 if __name__ == "__main__":
+    import os
+    NS_ = int(os.environ.get("LAW3_SEEDS", "3"))   # e.g. LAW3_SEEDS=20 -> results/law3s20_<system>.json (seeds 1..3 identical to the 3-seed run)
     for s in (sys.argv[1:] or ["lorenz63", "rossler", "lorenz96_5", "lorenz96_6", "lorenz96_8"]):
-        run(s)
+        run(s, NS_)

@@ -1,4 +1,4 @@
-results/*.parquet
+results/d8_stocks_preds.parquet
 results/*.log
 results/*.npz
 *.log
