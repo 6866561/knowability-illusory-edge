@@ -72,6 +72,32 @@ for sysname, t in (("lorenz63", "Lor"), ("rossler", "Ros")):
         for k, v in sens.items():
             M[f"ms{t}{k}"] = v
 
+cx = J("chaos_attractor_check")
+if cx:
+    short = [v for s in cx.values() for L, v in s["per_L"].items() if float(L) <= 3.0]
+    M["cxAgreeMin"] = f"{100 * min(v['decision_agreement'] for v in short):.1f}"
+    M["cxEtaMax"] = f"{max(v['mean_abs_eta_diff'] for v in short):.4f}"
+    l = cx["lorenz63"]["per_L"]
+    M["cxAgreeFive"] = f"{100 * l['5.0']['decision_agreement']:.1f}"; M["cxAgreeSeven"] = f"{100 * l['7.2']['decision_agreement']:.1f}"
+    M["cxAccASeven"] = f"{l['7.2']['acc_A']:.3f}"; M["cxAccBSeven"] = f"{l['7.2']['acc_B']:.3f}"; M["cxEtaSeven"] = f"{l['7.2']['mean_abs_eta_diff']:.3f}"
+    M["cxEssLor"] = f"{cx['lorenz63']['median_ess']:.0f}"; M["cxEssRos"] = f"{cx['rossler']['median_ess']:.0f}"
+    M["cxN"] = str(cx["lorenz63"]["n_test"]); M["cxP"] = f"{cx['lorenz63']['particles']:,}"
+qt = J("qdrift_twoway")
+dc = J("decomposition_check")
+if dc:
+    M["dcHdiff"] = f"{dc['H_cond']['abs_diff']:.0e}"; M["dcKL"] = f"{dc['model_term']['KL']:.4f}"
+    M["dcEpi"] = f"{dc['epistemic']['I_Y_Z_given_X']:.4f}"
+    M["dcMneg"] = f"{dc['measurement_term']['agrees_with_forecast']['M']:+.3f}"; M["dcMpos"] = f"{dc['measurement_term']['opposes_forecast']['M']:+.3f}"
+pit = J("pit_audit")
+if pit:
+    doms = [k for k in pit if k.startswith("d") and isinstance(pit[k], dict) and "rows" in pit[k]]
+    M["pitDoms"] = str(len(doms))
+    M["pitRows"] = f"{sum(pit[k]['rows'] for k in doms):,}"
+    M["pitViol"] = str(sum(pit[k]["label_after_decision_violations"] for k in doms))
+    M["pitMaxChange"] = f"{max(max(pit[k]['entity_rates_max_abs_change_before_cutoff'], pit[k]['feature_models_max_abs_change'] or 0) for k in doms):.0f}"
+    sr = pit["source_recomputation"]
+    M["pitQuakeN"] = str(sr["d9_quakes"]["rows_sampled"]); M["pitQuakeBad"] = str(sr["d9_quakes"]["mismatches"])
+    M["pitStockN"] = str(sr["d8_stocks"]["rows_sampled"]); M["pitStockBad"] = str(sr["d8_stocks"]["mismatches"])
 rp = J("reproduction")
 if rp:
     M["rpN"] = str(rp["n_compared"]); M["rpPass"] = str(rp["n_pass"]); M["rpMaxRel"] = f"{rp['max_rel_diff']:.1e}"; M["rpTol"] = rp["tolerance_text"]

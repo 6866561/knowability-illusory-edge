@@ -1,0 +1,92 @@
+{
+ "lorenz63": {
+  "sigma_rel": 0.0001,
+  "n_test": 600,
+  "particles": 2000,
+  "tau_lyapunov_times": 2.0,
+  "median_ess": 444.47626429933575,
+  "share_ess_below_50": 0.08166666666666667,
+  "per_L": {
+   "0.5": {
+    "decision_agreement": 1.0,
+    "mean_abs_eta_diff": 1.7578531223231644e-17,
+    "acc_A": 1.0,
+    "acc_B": 1.0,
+    "acc_diff_A_minus_B": 0.0
+   },
+   "1.0": {
+    "decision_agreement": 1.0,
+    "mean_abs_eta_diff": 3.136373985704898e-05,
+    "acc_A": 1.0,
+    "acc_B": 1.0,
+    "acc_diff_A_minus_B": 0.0
+   },
+   "2.0": {
+    "decision_agreement": 0.9983333333333333,
+    "mean_abs_eta_diff": 0.001142468760963336,
+    "acc_A": 0.9966666666666667,
+    "acc_B": 0.9983333333333333,
+    "acc_diff_A_minus_B": -0.0016666666666665941
+   },
+   "3.0": {
+    "decision_agreement": 1.0,
+    "mean_abs_eta_diff": 0.001952413366256784,
+    "acc_A": 1.0,
+    "acc_B": 1.0,
+    "acc_diff_A_minus_B": 0.0
+   },
+   "5.0": {
+    "decision_agreement": 0.9916666666666667,
+    "mean_abs_eta_diff": 0.013180403042074273,
+    "acc_A": 0.9883333333333333,
+    "acc_B": 0.99,
+    "acc_diff_A_minus_B": -0.0016666666666667052
+   },
+   "7.2": {
+    "decision_agreement": 0.9183333333333333,
+    "mean_abs_eta_diff": 0.08793433599947437,
+    "acc_A": 0.89,
+    "acc_B": 0.9416666666666667,
+    "acc_diff_A_minus_B": -0.05166666666666664
+   }
+  }
+ },
+ "rossler": {
+  "sigma_rel": 0.0001,
+  "n_test": 600,
+  "particles": 2000,
+  "tau_lyapunov_times": 2.0,
+  "median_ess": 307.71489084741665,
+  "share_ess_below_50": 0.058333333333333334,
+  "per_L": {
+   "0.5": {
+    "decision_agreement": 1.0,
+    "mean_abs_eta_diff": 2.2944609175586568e-17,
+    "acc_A": 1.0,
+    "acc_B": 1.0,
+    "acc_diff_A_minus_B": 0.0
+   },
+   "1.0": {
+    "decision_agreement": 1.0,
+    "mean_abs_eta_diff": 2.1094237467877975e-17,
+    "acc_A": 1.0,
+    "acc_B": 1.0,
+    "acc_diff_A_minus_B": 0.0
+   },
+   "2.0": {
+    "decision_agreement": 0.9966666666666667,
+    "mean_abs_eta_diff": 0.002091706658481797,
+    "acc_A": 0.9966666666666667,
+    "acc_B": 1.0,
+    "acc_diff_A_minus_B": -0.0033333333333332993
+   },
+   "3.0": {
+    "decision_agreement": 1.0,
+    "mean_abs_eta_diff": 0.0008771742688600335,
+    "acc_A": 1.0,
+    "acc_B": 1.0,
+    "acc_diff_A_minus_B": 0.0
+   }
+  }
+ }
+}

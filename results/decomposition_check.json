@@ -1,0 +1,32 @@
+{
+ "H_cond": {
+  "closed_form": 0.3862943611198906,
+  "quadrature": 0.386294361119769,
+  "abs_diff": 1.2156942119645464e-13
+ },
+ "model_term": {
+  "expected_loss": 0.38958340829418275,
+  "H_plus_KL": 0.3895834082941827,
+  "KL": 0.0032890471744136942,
+  "abs_diff": 5.551115123125783e-17,
+  "monte_carlo_loss": 0.39018889007854307,
+  "monte_carlo_se": 0.0003766306908144137
+ },
+ "epistemic": {
+  "H_Y_given_X_8bins": 0.3924594575495841,
+  "H_Y_given_X_Z": 0.386294361119769,
+  "I_Y_Z_given_X": 0.006165096429815109
+ },
+ "measurement_term": {
+  "agrees_with_forecast": {
+   "measured_minus_true_loss": -0.02553113329253015,
+   "M": -0.025531133292530105,
+   "abs_diff": 4.5102810375396984e-17
+  },
+  "opposes_forecast": {
+   "measured_minus_true_loss": 0.2806953490462722,
+   "M": 0.28069534904627225,
+   "abs_diff": 5.551115123125783e-17
+  }
+ }
+}

@@ -111,24 +111,24 @@ for n, lab in qn:
     if not p.exists():
         continue
     d = J(f"quantum2_{n}"); res = d["results"]
-    pcons = max(d["p_boot_quantum_better"], d["p_boot_time_quantum_better"])   # conservative over both dependence structures
+    pcons = max(d["p_boot_quantum_better"], d["p_boot_time_quantum_better"], d.get("p_boot_two_way_quantum_better", 0.0))   # conservative over all resampling schemes
     pv_list.append(pcons)
     qrows.append(dict(lab=lab, n=d["n_test"], lc=res[d["best_classical_same_input"]]["LSS"], c=d["best_classical_same_input"].replace("_", "\_"),
                       lq=res[d["best_quantum"]]["LSS"], q=d["best_quantum"].replace("_", "\_"), dll=d["ll_diff_q_minus_c"], ci=d["ll_diff_ci"],
-                      cit=d["ll_diff_ci_time_block"], dm=d["p_quantum_better_one_sided"], pe=d["p_boot_quantum_better"], pt=d["p_boot_time_quantum_better"], name=n))
+                      cit=d.get("ll_diff_ci_two_way", d["ll_diff_ci_time_block"]), dm=d["p_quantum_better_one_sided"], pe=d["p_boot_quantum_better"], pt=d["p_boot_time_quantum_better"], p2=d.get("p_boot_two_way_quantum_better", float("nan")), name=n))
 if qrows:
     import sys; sys.path.insert(0, str(ROOT)); from kn.core import holm
     adj = holm(pv_list)
     out = []
     for r_, pa in zip(qrows, adj):
-        out.append(f"{r_['lab']} & {r_['n']:,} & {r_['lc']:.3f} ({r_['c']}) & {r_['lq']:.3f} ({r_['q']}) & {r_['dll']:+.4f} & [{r_['ci'][0]:+.4f}, {r_['ci'][1]:+.4f}] & [{r_['cit'][0]:+.4f}, {r_['cit'][1]:+.4f}] & {r_['dm']:.3f} & {r_['pe']:.3f} / {r_['pt']:.3f} & {pa:.3f} \\\\")
+        out.append(f"{r_['lab']} & {r_['n']:,} & {r_['lc']:.3f} ({r_['c']}) & {r_['lq']:.3f} ({r_['q']}) & {r_['dll']:+.4f} & [{r_['ci'][0]:+.4f}, {r_['ci'][1]:+.4f}] & [{r_['cit'][0]:+.4f}, {r_['cit'][1]:+.4f}] & {r_['dm']:.3f} & {r_['pe']:.3f} / {r_['pt']:.3f} / {r_['p2']:.3f} & {pa:.3f} \\\\")
     (GEN / "tab_quantum_rev.tex").write_text("\n".join(out), encoding="utf-8")
     mac("qrevMinHolm", float(min(adj))); mac("qrevN", len(qrows), "{:d}")
     mac("qrevNsigWorse", sum(1 for r_ in qrows if r_["ci"][0] > 0 and r_["cit"][0] > 0), "{:d}")
     st_ = [r_ for r_ in qrows if r_["name"] == "d8_stocks"]
     if st_:
         r_ = st_[0]
-        mac("qrevStPe", r_["pe"], "{:.4f}"); mac("qrevStPt", r_["pt"], "{:.3f}"); mac("qrevStDll", r_["dll"], "{:+.4f}")
+        mac("qrevStPe", r_["pe"], "{:.4f}"); mac("qrevStPt", r_["pt"], "{:.3f}"); mac("qrevStPtw", r_["p2"], "{:.3f}"); mac("qrevStDll", r_["dll"], "{:+.4f}")
         mac("qrevStLq", r_["lq"], "{:+.4f}"); mac("qrevStLc", r_["lc"], "{:+.4f}")
         mac("qrevStCilo", r_["cit"][0], "{:+.4f}"); mac("qrevStCihi", r_["cit"][1], "{:+.4f}")
 

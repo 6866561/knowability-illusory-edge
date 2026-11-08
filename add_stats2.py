@@ -31,18 +31,25 @@ mac("scaleRsqMin", min(r2s)); mac("scaleRsqMax", max(r2s))
 
 # drift
 P, S = J("qdrift_primary"), J("qdrift_secondary")
-best = lambda A, hh: max(A[f"h{hh}"]["skill_ridge_vs_clim"], A[f"h{hh}"]["skill_hgb_vs_clim"], key=lambda d: d["skill"])
+TW = J("qdrift_twoway")   # pre-specified HGB; two-way (qubit x 7-day calendar block) intervals (qdrift_twoway.py)
+def fixed(src, m, hh, blk="7d"):
+    r = TW[src]["taskA"][f"{m}_h{hh}"]["hgb"]; lo, hi = r[f"ci_two_way_{blk}"]
+    return {"skill": r["point"], "lo": lo, "hi": hi}
 for m, tag in [("readout_error", "Ro"), ("cz_error", "Cz"), ("sx_error", "Sx"), ("T1", "Tone"), ("T2", "Ttwo")]:
     A = P["taskA"][m]
     for hh, ht in [(1, "One"), (14, "Ft")]:
-        b = best(A, hh); mac(f"dr{tag}{ht}", b["skill"]); mac(f"dr{tag}{ht}lo", b["lo"]); mac(f"dr{tag}{ht}hi", b["hi"])
+        b = fixed("primary", m, hh); mac(f"dr{tag}{ht}", b["skill"]); mac(f"dr{tag}{ht}lo", b["lo"]); mac(f"dr{tag}{ht}hi", b["hi"])
+        bq = TW["primary"]["taskA"][f"{m}_h{hh}"]["hgb"]
+        mac(f"dr{tag}{ht}Qlo", bq["ci_qubit"][0]); mac(f"dr{tag}{ht}Qhi", bq["ci_qubit"][1])
+        mac(f"dr{tag}{ht}Mlo", bq["ci_two_way_28d"][0]); mac(f"dr{tag}{ht}Mhi", bq["ci_two_way_28d"][1])
+        mac(f"dr{tag}{ht}Ridge", TW["primary"]["taskA"][f"{m}_h{hh}"]["ridge_point"])
     mac(f"dr{tag}Pers", A["h1"]["skill_pers_vs_clim"]["skill"])
-    mac(f"dr{tag}VsPers", max(A["h1"]["skill_ridge_vs_pers"]["skill"], A["h1"]["skill_hgb_vs_pers"]["skill"]))
+    mac(f"dr{tag}VsPers", A["h1"]["skill_hgb_vs_pers"]["skill"])
 pd_ = P["data"]
 mac("drQubits", pd_["readout_error"]["qubits"], "{:d}"); mac("drDays", pd_["readout_error"]["days"], "{:d}")
 mac("drObs", sum(v["obs"] for v in pd_.values()), "{:,}"); mac("drEdges", pd_["cz_error"]["series"], "{:,}")
 mac("drTOneObs", pd_["T1"]["obs"], "{:,}")
-mac("drRoSecOne", best(S["taskA"]["readout_error"], 1)["skill"]); mac("drToneSecOne", best(S["taskA"]["T1"], 1)["skill"])
+mac("drRoSecOne", fixed("secondary", "readout_error", 1)["skill"]); mac("drToneSecOne", fixed("secondary", "T1", 1)["skill"])
 mac("drSecDays", S["data"]["readout_error"]["days"], "{:d}")
 for D, t in [(P, "P"), (S, "S")]:
     tb = D["taskB"]
@@ -51,6 +58,10 @@ for D, t in [(P, "P"), (S, "S")]:
     mac(f"db{t}BadBadFt", tb["persistence"]["14"]["p_bad_given_bad"])
     for mod, mt in [("qubit_rate", "Hist"), ("logit", "Logit"), ("hgb", "Hgb")]:
         mac(f"db{t}{mt}LSS", tb[mod]["LSS"]); mac(f"db{t}{mt}LSSlo", tb[mod]["ci"]["LSS"][0]); mac(f"db{t}{mt}LSShi", tb[mod]["ci"]["LSS"][1])
+    _src = "primary" if t == "P" else "secondary"
+    if "taskB_hgb" in TW.get(_src, {}):   # two-way (qubit x 7-day block) interval replaces the qubit-only interval for HGB
+        mac(f"db{t}HgbLSSlo", TW[_src]["taskB_hgb"]["ci_two_way_7d"][0]); mac(f"db{t}HgbLSShi", TW[_src]["taskB_hgb"]["ci_two_way_7d"][1])
+        mac(f"db{t}HgbLSSMlo", TW[_src]["taskB_hgb"]["ci_two_way_28d"][0]); mac(f"db{t}HgbLSSMhi", TW[_src]["taskB_hgb"]["ci_two_way_28d"][1])
     mac(f"db{t}HgbAcc", tb["hgb"]["acc"]); mac(f"db{t}AccZero", tb["hgb"]["acc0"]); mac(f"db{t}Kappa", tb["ceiling"]["kappa"])
 mac("dbPAuc", P["taskB"]["auc_hgb"])
 
@@ -88,7 +99,7 @@ sec = pd.read_csv(ROOT.parent / "raw" / "qdrift" / "ibm_calibration_history.csv"
 t0, t1 = pd.to_datetime(sec.snapshot_time.min(), utc=True), pd.to_datetime(sec.snapshot_time.max(), utc=True)
 mac("drSecDays", (t1 - t0).days + 1, "{:d}"); mac("drSecStart", t0.strftime("%-d %B %Y") if False else f"{t0.day} {t0:%B %Y}"); mac("drSecEnd", f"{t1.day} {t1:%B %Y}")
 for m, tag in [("T1", "Tone"), ("T2", "Ttwo"), ("readout_error", "Ro")]:
-    b2 = best(S["taskA"][m], 1); mac(f"dr{tag}SecOne", b2["skill"]); mac(f"dr{tag}SecOnelo", b2["lo"]); mac(f"dr{tag}SecOnehi", b2["hi"])
+    b2 = fixed("secondary", m, 1); mac(f"dr{tag}SecOne", b2["skill"]); mac(f"dr{tag}SecOnelo", b2["lo"]); mac(f"dr{tag}SecOnehi", b2["hi"])
 lawj = J("law"); lam63 = J("law2_lorenz63")["lambda"]
 import scipy.stats as st
 Pp = np.array(lawj["nn_law_all"]["0.05"]["points"]); rr = st.linregress(Pp[:, 0], np.log(Pp[:, 1])); tc = st.t.ppf(0.975, len(Pp) - 2)
@@ -99,7 +110,7 @@ mac("liveAboveModels", sum(1 for bk in ib_ if bk["A_dev_mean"] < live_mean) if (
 mac("liveGapTs", (math.cos(math.pi / 8) ** 2) - w, "{:.3f}"); mac("liveGapTsSE", ((math.cos(math.pi / 8) ** 2) - w) / math.sqrt(w * (1 - w) / nl), "{:.1f}")
 mac("bellWlit", b["omega"]["omega_literal_xor_eq_a_and_b_all_trials"]); mac("bellWlitlo", b["omega"]["literal_CP95"][0]); mac("bellWlithi", b["omega"]["literal_CP95"][1])
 mac("bellPconv", b["paper_reported"]["p_conventional"])
-mac("drRoHalf", best(P["taskA"]["readout_error"], 14)["skill"] / best(P["taskA"]["readout_error"], 1)["skill"], "{:.2f}")
+mac("drRoHalf", fixed("primary", "readout_error", 14)["skill"] / fixed("primary", "readout_error", 1)["skill"], "{:.2f}")
 
 (GEN / "macros_ext.tex").write_text("\n".join("\\newcommand{\\" + k + "}{" + v + "}" for k, v in M.items()) + "\n", encoding="utf-8")
 

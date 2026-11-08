@@ -88,12 +88,14 @@ def fig_drift():
         A = P["taskA"].get(m)
         if not A:
             continue
-        best = [max(A[f"h{h}"]["skill_ridge_vs_clim"], A[f"h{h}"]["skill_hgb_vs_clim"], key=lambda d: d["skill"]) for h in hs]
+        _tw = json.loads((RES / "qdrift_twoway.json").read_text())["primary"]["taskA"]   # pre-specified HGB, two-way (qubit x 7-day) bands
+        best = [dict(skill=_tw[f"{m}_h{h}"]["hgb"]["point"], lo=_tw[f"{m}_h{h}"]["hgb"]["ci_two_way_7d"][0], hi=_tw[f"{m}_h{h}"]["hgb"]["ci_two_way_7d"][1]) for h in hs]
         ax.plot(hs, [b["skill"] for b in best], "o-", color=col, ms=2.6, label=lab)
         ax.fill_between(hs, [b["lo"] for b in best], [b["hi"] for b in best], color=col, alpha=0.15, lw=0)
         if m in S["taskA"]:
             B = S["taskA"][m]
-            sb = [max(B[f"h{h}"]["skill_ridge_vs_clim"]["skill"], B[f"h{h}"]["skill_hgb_vs_clim"]["skill"]) for h in hs]
+            _tws = json.loads((RES / "qdrift_twoway.json").read_text())["secondary"]["taskA"]
+            sb = [_tws[f"{m}_h{h}"]["hgb"]["point"] for h in hs]
             ax.plot(hs, sb, "--", color=col, lw=0.8)
     pers = [P["taskA"]["readout_error"][f"h{h}"]["skill_pers_vs_clim"]["skill"] for h in hs]
     ax.plot(hs, pers, ":", color="k", lw=0.9, label="persistence (readout)")

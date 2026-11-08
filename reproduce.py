@@ -21,10 +21,13 @@ STEPS = [
     ("SEC XBRL download", [sys.executable, "fetch_audit_xbrl.py"], []),
     ("audit cross-check (reported-EPS side)", [sys.executable, "audit_crosscheck.py"], ["results/audit_crosscheck.json"]),
     ("coverage suite", [sys.executable, "coverage_suite.py"], ["results/coverage_suite.json"]),
+    ("decomposition checks", [sys.executable, "decomposition_check.py"], ["results/decomposition_check.json"]),
+    ("hardware two-way intervals", [sys.executable, "qdrift_twoway.py"], ["results/qdrift_twoway.json"]),
 ]
 # parts of regenerated files that legitimately differ in a clean clone (inputs not redistributed)
 EXCLUDE = {"results/rev2_analyses.json": ["time_block.d8_stocks", "two_way.d8_stocks"],
-           "results/audit_crosscheck.json": ["guid", "plus_screen", "rows"]}
+           "results/audit_crosscheck.json": ["guid", "plus_screen", "rows"],
+           "results/qdrift_twoway.json": ["secondary"]}
 
 
 def committed(path):
@@ -82,7 +85,8 @@ out = {"commit": subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_
        "tolerance_text": "relative 1e-9 or absolute 1e-12", "discrepancies": fails[:50],
        "not_covered": ["GPU chaos studies (run_law3.py, validate_posterior.py)", "quantum-model comparison (run_quantum2.py)",
                        "raw-data task builders", "stock-direction rows (prediction file not redistributed)",
-                       "rule-based guidance screen (press-release texts not redistributed)"]}
+                       "rule-based guidance screen (press-release texts not redistributed)",
+                       "point-in-time audit (task datasets and raw caches not redistributed)", "replication drift rows (dataset without licence)"]}
 (ROOT / "results" / "reproduction.json").write_text(json.dumps(out, indent=1, default=str))
 (ROOT / "reproduction_log.txt").write_text("\n".join(log), encoding="utf-8")
 print(json.dumps({k: out[k] for k in ("commit", "n_compared", "n_pass", "max_rel_diff")}, indent=1))

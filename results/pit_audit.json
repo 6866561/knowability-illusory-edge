@@ -1,0 +1,93 @@
+{
+ "d4_weather": {
+  "rows": 549643,
+  "label_after_decision_violations": 0,
+  "min_gap_days": 2.0,
+  "entity_rates_rows_checked": 180449,
+  "entity_rates_max_abs_change_before_cutoff": 0.0,
+  "feature_models_rows_checked": 144378,
+  "feature_models_max_abs_change": 0.0
+ },
+ "d4_weather_nwp": {
+  "rows": 34959,
+  "label_after_decision_violations": 0,
+  "min_gap_days": 2.0,
+  "entity_rates_rows_checked": 17494,
+  "entity_rates_max_abs_change_before_cutoff": 0.0,
+  "feature_models_rows_checked": 14023,
+  "feature_models_max_abs_change": 0.0
+ },
+ "d5_football": {
+  "rows": 36271,
+  "label_after_decision_violations": 0,
+  "min_gap_days": 1.0,
+  "entity_rates_rows_checked": 18148,
+  "entity_rates_max_abs_change_before_cutoff": 0.0,
+  "feature_models_rows_checked": 14520,
+  "feature_models_max_abs_change": 0.0
+ },
+ "d6_house": {
+  "rows": 7411,
+  "label_after_decision_violations": 0,
+  "min_gap_days": 30.0,
+  "entity_rates_rows_checked": 4044,
+  "entity_rates_max_abs_change_before_cutoff": 0.0,
+  "feature_models_rows_checked": 3028,
+  "feature_models_max_abs_change": 0.0
+ },
+ "d6_president": {
+  "rows": 561,
+  "label_after_decision_violations": 0,
+  "min_gap_days": 30.0,
+  "entity_rates_rows_checked": 306,
+  "entity_rates_max_abs_change_before_cutoff": 0.0,
+  "feature_models_rows_checked": 255,
+  "feature_models_max_abs_change": 0.0
+ },
+ "d8_stocks": {
+  "rows": 557921,
+  "label_after_decision_violations": 0,
+  "min_gap_days": 3.0,
+  "entity_rates_rows_checked": 102717,
+  "entity_rates_max_abs_change_before_cutoff": 0.0,
+  "feature_models_rows_checked": 82160,
+  "feature_models_max_abs_change": 0.0
+ },
+ "d9_quakes": {
+  "rows": 531900,
+  "label_after_decision_violations": 0,
+  "min_gap_days": 8.0,
+  "entity_rates_rows_checked": 35480,
+  "entity_rates_max_abs_change_before_cutoff": 0.0,
+  "feature_models_rows_checked": 28400,
+  "feature_models_max_abs_change": 0.0
+ },
+ "source_recomputation": {
+  "d9_quakes": {
+   "rows_sampled": 300,
+   "mismatches": 0,
+   "checked": "x_c7, x_c30 (events strictly before t) and label (events in [t, t+7d))"
+  },
+  "d8_stocks": {
+   "rows_sampled": 300,
+   "mismatches": 0,
+   "checked": "x_r1 (return to the close at t) and label (close at t+1 above close at t)"
+  },
+  "d7_earnings_audit_rows": {
+   "rows": 82,
+   "decision_before_release": 0,
+   "max_days_release_to_decision": 1.0,
+   "min_days_release_to_decision": 1.0
+  },
+  "d7_earnings_label_timing": {
+   "rows": 972,
+   "label_after_decision_violations": 0,
+   "min_gap_days": 50.0
+  }
+ },
+ "not_recomputed_from_source": [
+  "weather station and NWP inputs (raw station files not cached)",
+  "football ratings, rest, form and closing odds",
+  "House and presidential histories"
+ ]
+}

@@ -140,11 +140,16 @@ def main(name):
     tgroups = {k: np.asarray(v) for k, v in pd.Series(blk).groupby(blk).indices.items()}
     bst = core.cluster_bootstrap(tgroups, lambda idx: lq[idx].mean() - lc[idx].mean(), reps=2000)
     p_boot_time = float(np.mean(bst >= 0))
+    # two-way (entity x time block) pigeonhole bootstrap of the mean log-loss difference
+    _ec = pd.factorize(te['entity'].astype(str).reset_index(drop=True))[0]; _bc = pd.factorize(pd.Series(blk))[0]
+    _d = lq - lc
+    bs2 = core.pigeonhole_ratio_bootstrap(_ec, _bc, _d, np.ones_like(_d), reps=2000, seed=20261108)
+    p_boot_two = float(np.mean(bs2 >= 0))
     out = {"name": name, "n_fit": len(fit), "n_val": len(val), "n_test": len(te), "n_kernel": int(len(ks)), "d": d,
            "pca_var": pca.explained_variance_ratio_.tolist(), "results": res, "best_quantum": bq, "best_classical_same_input": bc,
            "ll_diff_q_minus_c": float(lq.mean() - lc.mean()), "ll_diff_ci": np.percentile(bs, [2.5, 97.5]).tolist(),
            "dm": dm, "p_quantum_better_one_sided": p_q_better, "p_boot_quantum_better": p_boot_q_better, "ll_diff_ci_time_block": np.percentile(bst, [2.5, 97.5]).tolist(),
-           "p_boot_time_quantum_better": p_boot_time, "n_time_blocks": len(tgroups), "selection": "validation log loss",
+           "p_boot_time_quantum_better": p_boot_time, "ll_diff_ci_two_way": np.percentile(bs2, [2.5, 97.5]).tolist(), "p_boot_two_way_quantum_better": p_boot_two, "n_time_blocks": len(tgroups), "selection": "validation log loss",
            "prereg_classical_set": {"best": bcp, "ll_diff": float(lq.mean() - lcp.mean()), "dm": dm_prereg,
                                     "p_quantum_better_one_sided": float(stats.norm.cdf(dm_prereg["dm"]))}, "timing_s": timing, "secs": time.time() - t0}
     (ROOT / "results").mkdir(exist_ok=True)
